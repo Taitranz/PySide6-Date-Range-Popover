@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBox
 
 from .animation.slide_animator import SlideAnimator
 from .components.button_strip import ButtonStrip
-from .components.date_time_range_selector import DateTimeRangeSelector
+from .components.date_time_range_selector import CUSTOM_DATE_RANGE, DateTimeRangeSelector
 from .components.draggable_header import DraggableHeaderStrip
 from .components.sliding_track import SlidingTrackIndicator
 from .styles import constants
@@ -49,7 +49,7 @@ class DateRangePickerMenu(QWidget):
         spacer.setFixedHeight(16)
         button_container_layout.addWidget(spacer)
 
-        self._date_time_selector = DateTimeRangeSelector(self)
+        self._date_time_selector = DateTimeRangeSelector(self, mode=CUSTOM_DATE_RANGE)
         button_container_layout.addWidget(self._date_time_selector)
 
         main_layout = QVBoxLayout(self)
