@@ -61,6 +61,9 @@ class CalendarDayCell(QWidget):
         in_current_month: bool,
         is_selected: bool,
         is_future: bool = False,
+        is_range_start: bool = False,
+        is_range_end: bool = False,
+        is_in_range: bool = False,
     ) -> None:
         self._date = date
 
@@ -82,15 +85,26 @@ class CalendarDayCell(QWidget):
             text_color = self._style.day_text_color
             self._button.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        if is_selected:
+        background = "transparent"
+        hover_background = self._style.day_hover_background
+        hover_text = self._style.day_hover_text_color
+
+        is_range_edge = is_range_start or is_range_end
+        if is_range_edge:
+            background = self._style.range_edge_background
+            hover_background = self._style.range_edge_background
+            text_color = self._style.range_edge_text_color
+            hover_text = self._style.range_edge_text_color
+        elif is_in_range:
+            background = self._style.range_between_background
+            hover_background = self._style.range_between_background
+            text_color = self._style.range_between_text_color
+            hover_text = self._style.range_between_text_color
+        elif is_selected:
             background = self._style.today_background
             hover_background = self._style.today_background
             hover_text = self._style.today_text_color
             text_color = self._style.today_text_color
-        else:
-            background = "transparent"
-            hover_background = self._style.day_hover_background
-            hover_text = self._style.day_hover_text_color
 
         self._update_stylesheet(
             background=background,

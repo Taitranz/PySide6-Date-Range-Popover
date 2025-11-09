@@ -32,22 +32,28 @@ class CalendarDayView(QWidget):
     ) -> None:
         super().__init__(parent)
 
-        self._style = style or CalendarStyleConfig(
-            background="#1f1f1f",
-            header_text_color="#f5f5f5",
-            day_text_color="#f5f5f5",
-            muted_day_text_color="#8c8c8c",
-            today_background="#f5f5f5",
-            today_text_color="#1f1f1f",
-            today_underline_color="#1f1f1f",
-            day_hover_background="#343434",
-            day_hover_text_color="#f5f5f5",
-            nav_icon_color="#dbdbdb",
-            day_label_background="#2e2e2e",
-            mode_label_background="#2e2e2e",
-            header_hover_background="#2e2e2e",
-            header_hover_text_color="#ffffff",
-        )
+        if style is None:
+            style = CalendarStyleConfig(
+                background="#1f1f1f",
+                header_text_color="#f5f5f5",
+                day_text_color="#f5f5f5",
+                muted_day_text_color="#8c8c8c",
+                today_background="#f5f5f5",
+                today_text_color="#1f1f1f",
+                today_underline_color="#1f1f1f",
+                day_hover_background="#343434",
+                day_hover_text_color="#f5f5f5",
+                nav_icon_color="#dbdbdb",
+                day_label_background="#2e2e2e",
+                mode_label_background="#2e2e2e",
+                header_hover_background="#2e2e2e",
+                header_hover_text_color="#ffffff",
+                range_edge_background="#f2f2f2",
+                range_edge_text_color="#1f1f1f",
+                range_between_background="#2e2e2e",
+                range_between_text_color="#ffffff",
+            )
+        self._style = style
         self._layout_config = layout or LayoutConfig()
 
         root_layout = QVBoxLayout(self)
@@ -122,10 +128,21 @@ class CalendarDayView(QWidget):
         visible_month: QDate,
         today: QDate,
         selected_date: QDate,
+        range_start: QDate | None = None,
+        range_end: QDate | None = None,
     ) -> None:
         month_start = QDate(visible_month.year(), visible_month.month(), 1)
         start_offset = (month_start.dayOfWeek() - 1) % 7
         start_date = month_start.addDays(-start_offset)
+
+        start_julian: int | None = None
+        end_julian: int | None = None
+        if range_start is not None and range_start.isValid():
+            start_julian = range_start.toJulianDay()
+        if range_end is not None and range_end.isValid():
+            end_julian = range_end.toJulianDay()
+        if start_julian is not None and end_julian is not None and start_julian > end_julian:
+            start_julian, end_julian = end_julian, start_julian
 
         for index, cell in enumerate(self._cells):
             day_date = start_date.addDays(index)
@@ -135,11 +152,22 @@ class CalendarDayView(QWidget):
             )
             is_selected: bool = day_date.toJulianDay() == selected_date.toJulianDay()
             is_future: bool = bool(today.daysTo(day_date) > 0)
+            day_julian = day_date.toJulianDay()
+            is_range_start = start_julian is not None and day_julian == start_julian
+            is_range_end = end_julian is not None and day_julian == end_julian
+            is_in_range = (
+                start_julian is not None
+                and end_julian is not None
+                and start_julian < day_julian < end_julian
+            )
             cell.set_day(
                 day_date,
                 in_current_month=in_current_month,
                 is_selected=is_selected,
                 is_future=is_future,
+                is_range_start=is_range_start,
+                is_range_end=is_range_end,
+                is_in_range=is_in_range,
             )
 
     def _weekday_names(self) -> Iterable[str]:

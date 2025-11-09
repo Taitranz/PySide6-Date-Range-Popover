@@ -89,14 +89,14 @@ class DatePickerCoordinator(QObject):
         if current_mode is PickerMode.DATE:
             self._pending_range_start = None
             self._state_manager.select_date(date)
-        else:
-            if self._date_time_selector is not None:
-                self._date_time_selector.apply_calendar_selection(date)
-            if self._pending_range_start is None:
-                self._pending_range_start = date
-            else:
-                self._state_manager.select_range(self._pending_range_start, date)
-                self._pending_range_start = None
+            return
+
+        if current_mode is not PickerMode.CUSTOM_RANGE:
+            return
+
+        self._pending_range_start = None
+        if self._date_time_selector is not None:
+            self._date_time_selector.apply_calendar_selection(date)
 
     # State change handlers ---------------------------------------------------------
 
@@ -105,6 +105,20 @@ class DatePickerCoordinator(QObject):
         self._apply_mode_to_date_time_selector(mode)
         self._update_sliding_track(mode)
         self._pending_range_start = None
+        if self._calendar is not None:
+            if mode is PickerMode.DATE:
+                self._calendar.clear_selected_range()
+            else:
+                start, end = self._state_manager.state.selected_dates
+                if (
+                    start is not None
+                    and end is not None
+                    and start.isValid()
+                    and end.isValid()
+                ):
+                    self._calendar.set_selected_range(start, end)
+                else:
+                    self._calendar.clear_selected_range()
 
     def _on_selected_date_changed(self, date: QDate) -> None:
         if self._calendar is not None:
@@ -115,6 +129,11 @@ class DatePickerCoordinator(QObject):
     def _on_selected_range_changed(self, start: QDate, end: QDate) -> None:
         if self._date_time_selector is not None:
             self._date_time_selector.set_range(start, end)
+        if (
+            self._calendar is not None
+            and self._state_manager.state.mode is PickerMode.CUSTOM_RANGE
+        ):
+            self._calendar.set_selected_range(start, end)
 
     def _on_visible_month_changed(self, month: QDate) -> None:
         if self._calendar is not None:

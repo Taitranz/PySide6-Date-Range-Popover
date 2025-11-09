@@ -83,6 +83,10 @@ class StyleRegistry:
                 mode_label_background=palette.calendar_mode_label_background,
                 header_hover_background=palette.calendar_header_hover_background,
                 header_hover_text_color=palette.calendar_header_hover_text_color,
+                range_edge_background=palette.calendar_range_edge_background,
+                range_edge_text_color=palette.calendar_range_edge_text_color,
+                range_between_background=palette.calendar_range_between_background,
+                range_between_text_color=palette.calendar_range_between_text_color,
             )
         }
 

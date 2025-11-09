@@ -29,22 +29,28 @@ class CalendarMonthView(QWidget):
         layout: LayoutConfig | None = None,
     ) -> None:
         super().__init__(parent)
-        self._style = style or CalendarStyleConfig(
-            background="#1f1f1f",
-            header_text_color="#f5f5f5",
-            day_text_color="#f5f5f5",
-            muted_day_text_color="#8c8c8c",
-            today_background="#f5f5f5",
-            today_text_color="#1f1f1f",
-            today_underline_color="#1f1f1f",
-            day_hover_background="#343434",
-            day_hover_text_color="#f5f5f5",
-            nav_icon_color="#dbdbdb",
-            day_label_background="#2e2e2e",
-            mode_label_background="#2e2e2e",
-            header_hover_background="#2e2e2e",
-            header_hover_text_color="#ffffff",
-        )
+        if style is None:
+            style = CalendarStyleConfig(
+                background="#1f1f1f",
+                header_text_color="#f5f5f5",
+                day_text_color="#f5f5f5",
+                muted_day_text_color="#8c8c8c",
+                today_background="#f5f5f5",
+                today_text_color="#1f1f1f",
+                today_underline_color="#1f1f1f",
+                day_hover_background="#343434",
+                day_hover_text_color="#f5f5f5",
+                nav_icon_color="#dbdbdb",
+                day_label_background="#2e2e2e",
+                mode_label_background="#2e2e2e",
+                header_hover_background="#2e2e2e",
+                header_hover_text_color="#ffffff",
+                range_edge_background="#f2f2f2",
+                range_edge_text_color="#1f1f1f",
+                range_between_background="#2e2e2e",
+                range_between_text_color="#ffffff",
+            )
+        self._style = style
         self._layout_config = layout or LayoutConfig()
 
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)

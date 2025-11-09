@@ -32,6 +32,10 @@ class ColorPalette:
     calendar_mode_label_background: str = "#2e2e2e"
     calendar_header_hover_background: str = "#2e2e2e"
     calendar_header_hover_text_color: str = "#ffffff"
+    calendar_range_edge_background: str = "#f2f2f2"
+    calendar_range_edge_text_color: str = "#1f1f1f"
+    calendar_range_between_background: str = "#2e2e2e"
+    calendar_range_between_text_color: str = "#ffffff"
     input_background: str = "#1f1f1f"
     input_border_default: str = "#575757"
     input_border_hover: str = "#707070"
@@ -109,6 +113,10 @@ class CalendarStyleConfig:
     mode_label_background: str
     header_hover_background: str
     header_hover_text_color: str
+    range_edge_background: str = "#f2f2f2"
+    range_edge_text_color: str = "#1f1f1f"
+    range_between_background: str = "#2e2e2e"
+    range_between_text_color: str = "#ffffff"
 
 
 @dataclass(frozen=True, slots=True)

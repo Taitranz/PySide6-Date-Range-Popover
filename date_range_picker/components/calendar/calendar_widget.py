@@ -38,28 +38,36 @@ class CalendarWidget(QWidget):
     ) -> None:
         super().__init__(parent)
 
-        self._style = style or CalendarStyleConfig(
-            background="#1f1f1f",
-            header_text_color="#f5f5f5",
-            day_text_color="#f5f5f5",
-            muted_day_text_color="#8c8c8c",
-            today_background="#f5f5f5",
-            today_text_color="#1f1f1f",
-            today_underline_color="#1f1f1f",
-            day_hover_background="#343434",
-            day_hover_text_color="#f5f5f5",
-            nav_icon_color="#dbdbdb",
-            day_label_background="#2e2e2e",
-            mode_label_background="#2e2e2e",
-            header_hover_background="#2e2e2e",
-            header_hover_text_color="#ffffff",
-        )
+        if style is None:
+            style = CalendarStyleConfig(
+                background="#1f1f1f",
+                header_text_color="#f5f5f5",
+                day_text_color="#f5f5f5",
+                muted_day_text_color="#8c8c8c",
+                today_background="#f5f5f5",
+                today_text_color="#1f1f1f",
+                today_underline_color="#1f1f1f",
+                day_hover_background="#343434",
+                day_hover_text_color="#f5f5f5",
+                nav_icon_color="#dbdbdb",
+                day_label_background="#2e2e2e",
+                mode_label_background="#2e2e2e",
+                header_hover_background="#2e2e2e",
+                header_hover_text_color="#ffffff",
+                range_edge_background="#f2f2f2",
+                range_edge_text_color="#1f1f1f",
+                range_between_background="#2e2e2e",
+                range_between_text_color="#ffffff",
+            )
+        self._style = style
         self._layout_config = layout or LayoutConfig()
 
         self._today = QDate.currentDate()
         self._selected_date = self._today
         self._visible_month = QDate(self._today.year(), self._today.month(), 1)
         self._view_mode: CalendarViewMode = CalendarViewMode.DAY
+        self._range_start: QDate | None = None
+        self._range_end: QDate | None = None
         self._year_range_start = self._compute_year_range_start(self._visible_month.year())
 
         self._navigation = CalendarNavigation(style=self._style)
@@ -109,6 +117,36 @@ class CalendarWidget(QWidget):
         self._ensure_year_range_contains(date.year())
         self._switch_view(CalendarViewMode.DAY)
 
+    def set_selected_range(self, start: QDate, end: QDate) -> None:
+        if not start.isValid() or not end.isValid():
+            return
+        if start > end:
+            start, end = end, start
+        self._range_start = start
+        self._range_end = end
+        if self._view_mode is CalendarViewMode.DAY:
+            self._day_view.update_days(
+                visible_month=self._visible_month,
+                today=self._today,
+                selected_date=self._selected_date,
+                range_start=self._range_start,
+                range_end=self._range_end,
+            )
+
+    def clear_selected_range(self) -> None:
+        if self._range_start is None and self._range_end is None:
+            return
+        self._range_start = None
+        self._range_end = None
+        if self._view_mode is CalendarViewMode.DAY:
+            self._day_view.update_days(
+                visible_month=self._visible_month,
+                today=self._today,
+                selected_date=self._selected_date,
+                range_start=None,
+                range_end=None,
+            )
+
     def set_visible_month(self, month: QDate) -> None:
         if not month.isValid():
             return
@@ -122,6 +160,8 @@ class CalendarWidget(QWidget):
                 visible_month=self._visible_month,
                 today=self._today,
                 selected_date=self._selected_date,
+                range_start=self._range_start,
+                range_end=self._range_end,
             )
         elif self._view_mode is CalendarViewMode.MONTH:
             self._month_view.set_selected_month(self._visible_month.month())
@@ -184,6 +224,8 @@ class CalendarWidget(QWidget):
             visible_month=self._visible_month,
             today=self._today,
             selected_date=self._selected_date,
+            range_start=self._range_start,
+            range_end=self._range_end,
         )
         self._update_header()
         self._update_navigation_state()
@@ -229,6 +271,8 @@ class CalendarWidget(QWidget):
                 visible_month=self._visible_month,
                 today=self._today,
                 selected_date=self._selected_date,
+                range_start=self._range_start,
+                range_end=self._range_end,
             )
             if self._mode_label_container is not None:
                 self._mode_label_container.setVisible(False)
@@ -290,6 +334,8 @@ class CalendarWidget(QWidget):
             visible_month=self._visible_month,
             today=self._today,
             selected_date=self._selected_date,
+            range_start=self._range_start,
+            range_end=self._range_end,
         )
         self._month_view.set_selected_month(self._visible_month.month())
         self._ensure_year_range_contains(self._visible_month.year())
