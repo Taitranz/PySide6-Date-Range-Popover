@@ -34,6 +34,7 @@ class InputWithIcon(QWidget):
         max_length: int | None = None,
         regex_pattern: str | None = None,
         revert_on_focus_out: bool = True,
+        placeholder_text: str | None = None,
     ) -> None:
         super().__init__(parent)
 
@@ -53,6 +54,7 @@ class InputWithIcon(QWidget):
             re.compile(regex_pattern) if regex_pattern is not None else None
         )
         self._revert_on_focus_out = revert_on_focus_out
+        self._placeholder_text = placeholder_text or ""
         self._last_valid_text = text
         self._is_invalid = False
 
@@ -62,6 +64,8 @@ class InputWithIcon(QWidget):
 
         self.input = QLineEdit(self)
         self.input.setText(text)
+        if self._placeholder_text:
+            self.input.setPlaceholderText(self._placeholder_text)
         self.input.setFrame(False)
         self.input.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.input.installEventFilter(self)

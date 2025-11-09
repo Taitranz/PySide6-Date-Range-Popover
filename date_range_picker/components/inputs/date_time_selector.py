@@ -232,6 +232,7 @@ class DateTimeSelector(QWidget):
             else r"^(?:[01]\d|2[0-3]):[0-5]\d$"
         )
 
+        placeholder = "YYYY-MM-DD" if is_date else "HH:MM"
         if width is None:
             input_with_icon = InputWithIcon(
                 parent,
@@ -239,6 +240,7 @@ class DateTimeSelector(QWidget):
                 icon_path=icon_path or str(CALENDAR_ICON_PATH),
                 max_length=max_length,
                 regex_pattern=regex_pattern,
+                placeholder_text=placeholder,
             )
         else:
             input_with_icon = InputWithIcon(
@@ -248,6 +250,7 @@ class DateTimeSelector(QWidget):
                 icon_path=icon_path or str(CALENDAR_ICON_PATH),
                 max_length=max_length,
                 regex_pattern=regex_pattern,
+                placeholder_text=placeholder,
             )
         input_with_icon.installEventFilter(self)
         input_with_icon.input.installEventFilter(self)
