@@ -135,7 +135,7 @@ class InputWithIcon(QWidget):
         elif self._is_hovered:
             border_style = "1px solid #707070"
         elif self._was_previously_focused:
-            border_style = "2px solid #575757"
+            border_style = "2px solid #8c8c8c"
         else:
             border_style = "1px solid #575757"
         self.setStyleSheet(

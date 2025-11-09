@@ -172,6 +172,7 @@ class CalendarWidget(QWidget):
 
         self._build_ui()
         self._switch_view(_CalendarViewMode.DAY)
+        self._update_nav_buttons_state()
 
     def _build_ui(self) -> None:
         main_layout = QVBoxLayout(self)
@@ -276,6 +277,7 @@ class CalendarWidget(QWidget):
             day_label_layout.addWidget(label)
 
         layout.addWidget(day_label_container, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addSpacing(8)
 
         grid_container = QWidget(container)
         grid_container.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
@@ -490,6 +492,7 @@ class CalendarWidget(QWidget):
             self._update_year_buttons()
 
         self._update_header()
+        self._update_nav_buttons_state()
 
     def _update_header(self) -> None:
         if self._view_mode is _CalendarViewMode.DAY:
@@ -528,10 +531,35 @@ class CalendarWidget(QWidget):
         self._visible_month = QDate(property_value, self._visible_month.month(), 1)
         self._switch_view(_CalendarViewMode.MONTH)
 
+    def _update_nav_buttons_state(self) -> None:
+        """Update the enabled state of navigation buttons based on current month."""
+        today = QDate.currentDate()
+        
+        # Check if clicking next would take us to a future month
+        next_month = self._visible_month.addMonths(1)
+        is_next_future = (
+            next_month.year() > today.year()
+            or (next_month.year() == today.year() and next_month.month() > today.month())
+        )
+        
+        # Update next button state and icon color
+        self._next_button.setEnabled(not is_next_future)
+        if is_next_future:
+            # Use muted color for disabled state
+            disabled_icon = _create_nav_icon(NAV_RIGHT_ICON_PATH, 32, "#575757")
+            self._next_button.setIcon(disabled_icon)
+            self._next_button.setCursor(Qt.CursorShape.ArrowCursor)
+        else:
+            # Use normal color for enabled state
+            enabled_icon = _create_nav_icon(NAV_RIGHT_ICON_PATH, 32, constants.CALENDAR_NAV_ICON_COLOR)
+            self._next_button.setIcon(enabled_icon)
+            self._next_button.setCursor(Qt.CursorShape.PointingHandCursor)
+
     def _change_month(self, delta: int) -> None:
         self._visible_month = self._visible_month.addMonths(delta)
         self._populate_days()
         self._update_header()
+        self._update_nav_buttons_state()
         if self._view_mode is _CalendarViewMode.MONTH:
             self._update_month_buttons()
         elif self._view_mode is _CalendarViewMode.YEAR:
