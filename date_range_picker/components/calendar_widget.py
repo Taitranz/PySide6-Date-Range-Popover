@@ -85,14 +85,26 @@ class _CalendarDayCell(QWidget):
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self._position_elements()
 
-    def set_day(self, date: QDate, *, in_current_month: bool, is_today: bool) -> None:
+    def set_day(self, date: QDate, *, in_current_month: bool, is_today: bool, is_future: bool = False) -> None:
         self._date = date
+        
+        if not in_current_month:
+            self._button.setVisible(False)
+            return
+        
+        self._button.setVisible(True)
         self._button.setText(str(date.day()))
+        self._button.setEnabled(not is_future)
 
-        if in_current_month:
+        if is_future:
+            text_color = "#575757"
+            self._button.setCursor(Qt.CursorShape.ArrowCursor)
+        elif in_current_month:
             text_color = constants.CALENDAR_DAY_TEXT_COLOR
+            self._button.setCursor(Qt.CursorShape.PointingHandCursor)
         else:
             text_color = constants.CALENDAR_MUTED_DAY_TEXT_COLOR
+            self._button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         if is_today:
             background = constants.CALENDAR_TODAY_BACKGROUND
@@ -150,6 +162,7 @@ class CalendarWidget(QWidget):
         self.setStyleSheet(f"background-color: {constants.CALENDAR_BACKGROUND};")
 
         self._today = QDate.currentDate()
+        self._selected_date = self._today  # Track the currently selected date
         self._visible_month = QDate(self._today.year(), self._today.month(), 1)
         self._day_cells: list[_CalendarDayCell] = []
         self._month_buttons: list[QPushButton] = []
@@ -409,11 +422,14 @@ class CalendarWidget(QWidget):
             "QPushButton {"
             "background-color: transparent;"
             "border: none;"
+            "padding: 0px;"
+            "border-radius: 4px;"
             "}"
             "QPushButton:hover {"
-            "background-color: #343434;"
+            "background-color: #2e2e2e;"
             "}"
         )
+        button.setFlat(True)
         return button
 
     def _on_header_clicked(self) -> None:
@@ -580,14 +596,17 @@ class CalendarWidget(QWidget):
                 day_date.month() == self._visible_month.month()
                 and day_date.year() == self._visible_month.year()
             )
-            is_today = (
-                day_date.year() == self._today.year()
-                and day_date.month() == self._today.month()
-                and day_date.day() == self._today.day()
+            is_selected = (
+                day_date.year() == self._selected_date.year()
+                and day_date.month() == self._selected_date.month()
+                and day_date.day() == self._selected_date.day()
             )
-            cell.set_day(day_date, in_current_month=in_current_month, is_today=is_today)
+            is_future = day_date > self._today
+            cell.set_day(day_date, in_current_month=in_current_month, is_today=is_selected, is_future=is_future)
 
     def _emit_date_selected(self, date: QDate) -> None:
+        self._selected_date = date
+        self._populate_days()  # Repopulate to update the highlight
         self.date_selected.emit(date)
 
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable, Final, Protocol, cast
 
-from PyQt6.QtCore import QByteArray, QSize, Qt
+from PyQt6.QtCore import QByteArray, QDate, QSize, Qt
 from PyQt6.QtGui import QIcon, QMouseEvent, QPainter, QPixmap
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
@@ -31,6 +31,10 @@ from .styles import constants
 
 class _ZeroArgSignal(Protocol):
     def connect(self, slot: Callable[[], None]) -> object: ...
+
+
+class _DateSignal(Protocol):
+    def connect(self, slot: Callable[[QDate], None]) -> object: ...
 
 
 CLOSE_ICON_PATH: Final[Path] = Path(__file__).resolve().parent / "assets" / "cross.svg"
@@ -177,6 +181,10 @@ class DateRangePickerMenu(QWidget):
         custom_signal = cast(_ZeroArgSignal, self._button_strip.custom_range_selected)
         date_signal.connect(self._on_date_selected)
         custom_signal.connect(self._on_custom_range_selected)
+        
+        # Connect calendar date selection to update the input in go_to_date mode
+        calendar_date_signal = cast(_DateSignal, self._calendar_widget.date_selected)
+        calendar_date_signal.connect(self._on_calendar_date_selected)
 
     def _on_date_selected(self) -> None:
         self._button_strip.set_selected_button("date")
@@ -188,6 +196,10 @@ class DateRangePickerMenu(QWidget):
         self._date_time_selector.set_mode(CUSTOM_DATE_RANGE)
         target_position = constants.DATE_BUTTON_WIDTH + constants.BUTTON_GAP
         self._animate_to(position=target_position, width=constants.CUSTOM_RANGE_INDICATOR_WIDTH)
+
+    def _on_calendar_date_selected(self, date: QDate) -> None:
+        """Update the go_to_date input when a date is selected from the calendar."""
+        self._date_time_selector.update_go_to_date(date)
 
     def _animate_to(self, *, position: int, width: int) -> None:
         current_position = self._sliding_track.current_position

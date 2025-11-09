@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Final, Literal
 
-from PyQt6.QtCore import QEvent, QObject, Qt
+from PyQt6.QtCore import QDate, QEvent, QObject, Qt
 from PyQt6.QtGui import QMouseEvent
 from PyQt6.QtWidgets import (
     QApplication,
@@ -44,6 +44,7 @@ class DateTimeRangeSelector(QWidget):
         self._layout.setContentsMargins(0, 0, 0, 0)
         self._layout.setSpacing(16)
         self._previously_focused_input: InputWithIcon | None = None
+        self._go_to_date_input: InputWithIcon | None = None
 
         self._build_ui()
 
@@ -77,6 +78,12 @@ class DateTimeRangeSelector(QWidget):
         self._mode = mode
         self._build_ui()
 
+    def update_go_to_date(self, date: QDate) -> None:
+        """Update the date input field in go_to_date mode."""
+        if self._go_to_date_input is not None and self._mode == GO_TO_DATE:
+            date_str = date.toString("yyyy-MM-dd")
+            self._go_to_date_input.input.setText(date_str)
+
     def _build_ui(self) -> None:
         self._previously_focused_input = None
         while self._layout.count():
@@ -94,6 +101,7 @@ class DateTimeRangeSelector(QWidget):
             row_layout.setSpacing(8)
 
             date_input = self._create_input(self, text="2025-11-04")
+            self._go_to_date_input = date_input
             time_input = self._create_input(
                 self,
                 text="00:00",

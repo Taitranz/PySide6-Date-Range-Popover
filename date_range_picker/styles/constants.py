@@ -101,7 +101,7 @@ def create_calendar_day_label_font() -> QFont:
 
 def create_calendar_day_font() -> QFont:
     font = QFont(FONT_FAMILY, CALENDAR_DAY_FONT_POINT_SIZE)
-    font.setWeight(QFont.Weight.Bold)
+    font.setWeight(QFont.Weight.Normal)
     font.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 96)
     return font
 
