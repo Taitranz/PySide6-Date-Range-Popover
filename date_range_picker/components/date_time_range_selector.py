@@ -20,7 +20,7 @@ class DateTimeRangeSelector(QWidget):
         super().__init__(parent)
 
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #cfe2f3; border-radius: 0px;")
+        self.setStyleSheet("background-color: #cfe2f3;")
 
         self._mode: ModeLiteral = mode
         self._layout = QVBoxLayout(self)
@@ -65,11 +65,11 @@ class DateTimeRangeSelector(QWidget):
         container = QWidget(self)
         container.setFixedHeight(34)
         container.setStyleSheet(
-            "background-color: #f2f2f2; border: 1px solid #8faadc; border-radius: 4px;",
+            "background-color: #f2f2f2; border: 1px solid #8faadc;",
         )
 
         container_layout = QVBoxLayout(container)
-        container_layout.setContentsMargins(8, 0, 8, 0)
+        container_layout.setContentsMargins(0, 0, 0, 0)
         container_layout.setSpacing(0)
 
         label = QLabel(text, container)
