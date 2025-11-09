@@ -112,6 +112,8 @@ class DateTimeSelector(QWidget):
             return
         self._mode = mode
         self._build_ui()
+        if mode == CUSTOM_DATE_RANGE and self._date_inputs:
+            self._date_inputs[0].input.setFocus(Qt.FocusReason.OtherFocusReason)
 
     def update_go_to_date(self, date: QDate) -> None:
         """Update the date input field in go_to_date mode."""
@@ -123,8 +125,15 @@ class DateTimeSelector(QWidget):
         target = self._last_focused_date_input or (self._date_inputs[0] if self._date_inputs else None)
         if target is None:
             return
+        was_first_input_focused = (
+            self._mode == CUSTOM_DATE_RANGE
+            and len(self._date_inputs) >= 2
+            and self._last_focused_date_input == self._date_inputs[0]
+        )
         target.set_text(date.toString("yyyy-MM-dd"))
         self._last_focused_date_input = target
+        if was_first_input_focused:
+            self._date_inputs[1].input.setFocus(Qt.FocusReason.OtherFocusReason)
 
     def set_range(self, start: QDate, end: QDate) -> None:
         if self._mode == GO_TO_DATE:
