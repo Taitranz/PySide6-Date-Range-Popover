@@ -1,5 +1,8 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
+
+from date_range_picker import DateRangePicker
 
 
 class MainWindow(QMainWindow):
@@ -10,6 +13,18 @@ class MainWindow(QMainWindow):
         
         # Set white background
         self.setStyleSheet("background-color: white;")
+        
+        # Create central widget
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        # Create layout
+        layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        date_range_picker = DateRangePicker()
+        layout.addWidget(date_range_picker, alignment=Qt.AlignmentFlag.AlignCenter)
 
 
 def main():
