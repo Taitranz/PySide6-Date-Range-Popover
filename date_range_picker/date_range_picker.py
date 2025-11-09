@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt, QSize, QPoint, QTimer
-from PyQt6.QtGui import QMouseEvent
+from PyQt6.QtGui import QMouseEvent, QResizeEvent
 from PyQt6.QtWidgets import QLabel, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton
 
 
@@ -79,36 +79,45 @@ class DateRangePicker(QWidget):
         button_layout.addStretch()
         
         # Add square below buttons
-        square_container = QWidget()
-        square_container_layout = QHBoxLayout(square_container)
-        square_container_layout.setContentsMargins(0, 0, 0, 0)
-        square_container_layout.setSpacing(0)
+        track_container = QWidget()
+        track_container.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        track_container.setStyleSheet("background-color: #4a4a4a;")
+        track_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        track_container_layout = QHBoxLayout(track_container)
+        track_container_layout.setContentsMargins(0, 0, 0, 0)
+        track_container_layout.setSpacing(0)
         
-        square = QWidget()
-        square.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        square.setFixedSize(262, 5)
-        square.setStyleSheet("background-color: #82b8ff;")
+        self.default_track_width = 262
+        self.track_container = track_container
         
-        inner_square = QWidget()
-        inner_square.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        inner_square.setFixedHeight(5)
-        inner_square.setStyleSheet("background-color: #2962ff; border-radius: 2px;")
+        self.left_spacer = QWidget()
+        self.left_spacer.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.left_spacer.setFixedWidth(0)
+        
+        sliding_indicator = QWidget()
+        sliding_indicator.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        sliding_indicator.setFixedHeight(5)
+        sliding_indicator.setStyleSheet("background-color: #2962ff; border-radius: 2px;")
+        
+        self.right_spacer = QWidget()
+        self.right_spacer.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.right_spacer.setFixedWidth(0)
         
         # Store button widths and gap for dynamic resizing
         self.date_button_width = 36
         self.custom_range_button_width = 90
         self.button_gap = 24
-        inner_square.setFixedWidth(self.date_button_width)  # Default to Date width
+        sliding_indicator.setFixedWidth(self.date_button_width)  # Default to Date width
         
-        square_container_layout.addWidget(square)
-        square_container_layout.addWidget(inner_square)
-        square_container_layout.addStretch()
+        track_container_layout.addWidget(self.left_spacer)
+        track_container_layout.addWidget(sliding_indicator)
+        track_container_layout.addWidget(self.right_spacer)
         
         # Store references for button click handlers
-        self.inner_square = inner_square
-        self.square_container_layout = square_container_layout
+        self.sliding_indicator = sliding_indicator
         self.current_position = 0  # Track current position for animation
         self.current_width = self.date_button_width  # Track current width for animation
+        self._update_square_layout(self.current_position)
         
         # Create animation timer
         self.animation_timer = QTimer()
@@ -133,7 +142,7 @@ class DateRangePicker(QWidget):
         button_container_layout.setContentsMargins(0, 0, 0, 0)
         button_container_layout.setSpacing(0)
         button_container_layout.addWidget(button_strip)
-        button_container_layout.addWidget(square_container, alignment=Qt.AlignmentFlag.AlignLeft)
+        button_container_layout.addWidget(track_container)
         
         main_layout.addWidget(button_container)
         
@@ -184,8 +193,8 @@ class DateRangePicker(QWidget):
         # Linear interpolation between start and target width
         self.current_width = int(self._animation_start_width + (self.target_width - self._animation_start_width) * progress)
         
-        # Update inner square width during animation
-        self.inner_square.setFixedWidth(self.current_width)
+        # Update sliding indicator width during animation
+        self.sliding_indicator.setFixedWidth(self.current_width)
         
         # Update layout with current position
         self._update_square_layout(self.current_position)
@@ -203,32 +212,16 @@ class DateRangePicker(QWidget):
     
     def _update_square_layout(self, position: int) -> None:
         """Update the square container layout with the current position."""
-        # Remove all widgets from layout
-        while self.square_container_layout.count():
-            item = self.square_container_layout.takeAt(0)
-            widget = item.widget() if item else None
-            if widget:
-                widget.hide()
+        track_width = self.track_container.width() or self.default_track_width
+        max_position = max(track_width - self.current_width, 0)
+        clamped_position = max(0, min(position, max_position))
         
-        # Add spacer for position, inner square, and remaining spacer
-        if position > 0:
-            spacer1 = QWidget()
-            spacer1.setFixedWidth(position)
-            self.square_container_layout.addWidget(spacer1)
+        self.left_spacer.setFixedWidth(clamped_position)
         
-        self.square_container_layout.addWidget(self.inner_square)
-        
-        # Calculate remaining space
-        if position == 0:
-            remaining = 262 - self.date_button_width
-        else:
-            remaining = 262 - position - self.custom_range_button_width
-        
-        if remaining > 0:
-            spacer2 = QWidget()
-            spacer2.setFixedWidth(remaining)
-            self.square_container_layout.addWidget(spacer2)
-        
-        self.square_container_layout.addStretch()
-        self.inner_square.show()
+        remaining = max(track_width - clamped_position - self.current_width, 0)
+        self.right_spacer.setFixedWidth(remaining)
+
+    def resizeEvent(self, a0: QResizeEvent | None) -> None:
+        super().resizeEvent(a0)
+        self._update_square_layout(self.current_position)
 
