@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, Protocol, cast
+from pathlib import Path
+from typing import Callable, Final, Protocol, cast
 
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QMouseEvent
+from PyQt6.QtCore import QByteArray, QSize, Qt
+from PyQt6.QtGui import QIcon, QMouseEvent, QPainter, QPixmap
+from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -26,10 +28,31 @@ class _ZeroArgSignal(Protocol):
     def connect(self, slot: Callable[[], None]) -> object: ...
 
 
+CLOSE_ICON_PATH: Final[Path] = Path(__file__).resolve().parent / "assets" / "cross.svg"
+
+
 def _clear_current_focus(widget: QWidget) -> None:
     focus_widget = QApplication.focusWidget()
     if focus_widget is not None and focus_widget is not widget:
         focus_widget.clearFocus()
+
+
+def _create_close_icon(size: QSize) -> QIcon:
+    try:
+        svg_text = CLOSE_ICON_PATH.read_text(encoding="utf-8")
+    except OSError:
+        return QIcon()
+    colored_svg = svg_text.replace("currentColor", "#dbdbdb")
+    renderer = QSvgRenderer(QByteArray(colored_svg.encode("utf-8")))
+    if not renderer.isValid():
+        return QIcon()
+    pixmap = QPixmap(size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    renderer.render(painter)
+    painter.end()
+    icon = QIcon(pixmap)
+    return icon
 
 
 class _ClickableContainer(QWidget):
@@ -121,12 +144,19 @@ class DateRangePickerMenu(QWidget):
         layout.setSpacing(0)
 
         title = QLabel("Go to", header_strip)
-        title.setFont(constants.create_header_font())
+        title_font = constants.create_header_font()
+        title_font.setBold(True)
+        title.setFont(title_font)
         layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        close_button = QPushButton("X", header_strip)
-        close_button.setMaximumWidth(30)
-        close_button.setStyleSheet("border: none; background: transparent;")
+        close_button = QPushButton(header_strip)
+        icon_size = QSize(18, 18)
+        close_button.setIcon(_create_close_icon(icon_size))
+        close_button.setIconSize(icon_size)
+        close_button.setFixedSize(30, 30)
+        close_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        close_button.setStyleSheet("border: none; background: transparent; color: #dbdbdb;")
+        close_button.setToolTip("Close")
         layout.addWidget(close_button, alignment=Qt.AlignmentFlag.AlignRight)
 
         self._close_button = close_button

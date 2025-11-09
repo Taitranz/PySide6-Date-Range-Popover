@@ -9,7 +9,8 @@ from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QSizePolicy, QWidget
 
 DEFAULT_HEIGHT: Final[int] = 34
 DEFAULT_WIDTH: Final[int] = 150
-DEFAULT_ICON_WIDTH: Final[int] = 34
+DEFAULT_ICON_PLACEHOLDER_WIDTH: Final[int] = 32
+DEFAULT_ICON_SIZE: Final[int] = 28
 ICON_COLOR: Final[str] = "#dbdbdb"
 INPUT_TEXT_COLOR: Final[str] = "#f5f5f5"
 
@@ -61,7 +62,7 @@ class InputWithIcon(QWidget):
 
         self.icon_placeholder = QWidget(self)
         self.icon_placeholder.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.icon_placeholder.setFixedWidth(DEFAULT_ICON_WIDTH)
+        self.icon_placeholder.setFixedWidth(DEFAULT_ICON_PLACEHOLDER_WIDTH)
         self.icon_placeholder.setSizePolicy(
             QSizePolicy.Policy.Fixed,
             QSizePolicy.Policy.Expanding,
@@ -134,7 +135,7 @@ class InputWithIcon(QWidget):
         label.setStyleSheet(
             """
             color: %s;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             """
             % ICON_COLOR
@@ -150,7 +151,7 @@ class InputWithIcon(QWidget):
         if not svg_data:
             return None
         svg_widget = QSvgWidget(self.icon_placeholder)
-        svg_widget.setFixedSize(DEFAULT_ICON_WIDTH, DEFAULT_HEIGHT)
+        svg_widget.setFixedSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE)
         svg_widget.setStyleSheet(
             """
             background-color: transparent;
