@@ -89,6 +89,8 @@ class InputWithIcon(QWidget):
         icon_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self._icon_widget: QWidget = self._build_icon_widget(self._icon_path)
+        self._install_focus_forwarding(self.icon_placeholder)
+        self._install_focus_forwarding(self._icon_widget)
         icon_layout.addWidget(self._icon_widget)
 
         root_layout.addWidget(self.icon_placeholder)
@@ -111,6 +113,10 @@ class InputWithIcon(QWidget):
         super().leaveEvent(a0)
 
     def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:
+        if a0 in {self.icon_placeholder, self._icon_widget}:
+            if a1 is not None and a1.type() is QEvent.Type.MouseButtonPress:
+                self.input.setFocus(Qt.FocusReason.MouseFocusReason)
+                return True
         if a0 in {self, self.input} and a1 is not None:
             if a1.type() is QEvent.Type.FocusIn:
                 self._was_previously_focused = False
@@ -268,6 +274,12 @@ class InputWithIcon(QWidget):
         elif isinstance(self._icon_widget, QSvgWidget) and self._icon_template is not None:
             svg_text = self._icon_template.replace("__SVG_COLOR__", color)
             self._icon_widget.load(svg_text.encode("utf-8"))
+
+    def _install_focus_forwarding(self, widget: QWidget | None) -> None:
+        if widget is None:
+            return
+        widget.installEventFilter(self)
+        widget.setCursor(Qt.CursorShape.IBeamCursor)
 
 
 def _default_style() -> InputStyleConfig:

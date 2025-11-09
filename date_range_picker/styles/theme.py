@@ -25,7 +25,7 @@ class ColorPalette:
     calendar_today_background: str = "#f5f5f5"
     calendar_today_text_color: str = "#1f1f1f"
     calendar_today_underline_color: str = "#1f1f1f"
-    calendar_day_hover_background: str = "#343434"
+    calendar_day_hover_background: str = "#2e2e2e"
     calendar_day_hover_text_color: str = "#f5f5f5"
     calendar_nav_icon_color: str = "#dbdbdb"
     calendar_day_label_background: str = "#2e2e2e"
