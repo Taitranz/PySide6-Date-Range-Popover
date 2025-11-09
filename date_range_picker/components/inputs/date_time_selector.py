@@ -260,8 +260,14 @@ class DateTimeSelector(QWidget):
         completer.setMaxVisibleItems(7)
         popup = completer.popup()
         if popup is not None:
-            popup.setStyleSheet("QListView { width: 100px; margin: 0px; padding: 0px; } QListView::item { height: 32px; margin: 0px; padding-left: 8px; padding-right: 8px; } QScrollBar:vertical { width: 0px; } QScrollBar:horizontal { height: 0px; }")
-            popup.setFixedWidth(100)
+            popup.setStyleSheet(
+                "QListView { width: 98px; margin: 0px; padding: 0px; border: none; } "
+                "QListView::item { height: 32px; margin: 0px; padding-left: 8px; padding-right: 8px; background-color: #1f1f1f; color: #ffffff; } "
+                "QListView::item:hover { background-color: #2e2e2e; color: #ffffff; } "
+                "QListView::item:selected { background-color: #f2f2f2; color: #000000; } "
+                "QScrollBar:vertical { width: 0px; } QScrollBar:horizontal { height: 0px; }"
+            )
+            popup.setFixedWidth(98)
             popup.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             popup.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         line_edit.setCompleter(completer)
@@ -293,7 +299,7 @@ class DateTimeSelector(QWidget):
                 if match_indexes:
                     popup.setCurrentIndex(match_indexes[0])
                     popup.scrollTo(match_indexes[0])
-        popup_rect = line_edit.rect().translated(0, 2)
+        popup_rect = line_edit.rect().translated(0, 3)
         completer.complete(popup_rect)
 
     def _on_date_input_text_changed(self, target: InputWithIcon, text: str) -> None:
