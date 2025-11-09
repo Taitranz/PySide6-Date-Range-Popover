@@ -1,4 +1,4 @@
-from .date_range_picker import DateRangePicker
+from .date_range_picker_menu import DateRangePickerMenu
 
-__all__ = ["DateRangePicker"]
+__all__ = ["DateRangePickerMenu"]
 

@@ -3,17 +3,11 @@ from __future__ import annotations
 from typing import Callable, Protocol, cast
 
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtWidgets import (
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QSizePolicy,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
 
 from .animation.slide_animator import SlideAnimator
 from .components.button_strip import ButtonStrip
+from .components.date_time_range_selector import DateTimeRangeSelector
 from .components.draggable_header import DraggableHeaderStrip
 from .components.sliding_track import SlidingTrackIndicator
 from .styles import constants
@@ -23,7 +17,7 @@ class _ZeroArgSignal(Protocol):
     def connect(self, slot: Callable[[], None]) -> object: ...
 
 
-class DateRangePicker(QWidget):
+class DateRangePickerMenu(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
@@ -51,6 +45,13 @@ class DateRangePicker(QWidget):
         button_container_layout.addWidget(self._button_strip)
         button_container_layout.addWidget(self._sliding_track)
 
+        spacer = QWidget(self)
+        spacer.setFixedHeight(16)
+        button_container_layout.addWidget(spacer)
+
+        self._date_time_selector = DateTimeRangeSelector(self)
+        button_container_layout.addWidget(self._date_time_selector)
+
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(
             constants.MAIN_PADDING,
@@ -62,14 +63,7 @@ class DateRangePicker(QWidget):
         main_layout.addWidget(self._header_strip)
         main_layout.addWidget(button_container)
 
-        center_layout = QVBoxLayout()
-        center_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        label = QLabel("helllo", self)
-        label.setFont(constants.create_label_font())
-        center_layout.addWidget(label)
-
-        main_layout.addLayout(center_layout, 1)
+        main_layout.addStretch(1)
 
         self._sliding_track.set_state(position=self._current_position, width=self._current_width)
 

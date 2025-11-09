@@ -2,7 +2,7 @@ import sys
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
 
-from date_range_picker import DateRangePicker
+from date_range_picker import DateRangePickerMenu
 
 
 class MainWindow(QMainWindow):
@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        date_range_picker = DateRangePicker()
+        date_range_picker = DateRangePickerMenu()
         layout.addWidget(date_range_picker, alignment=Qt.AlignmentFlag.AlignCenter)
 
 
