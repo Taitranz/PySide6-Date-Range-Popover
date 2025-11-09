@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 import calendar
-from typing import Callable, Iterable, List, Protocol, cast
+from enum import Enum, auto
+from functools import partial
+from typing import Callable, Iterable, List, Optional, Protocol, cast
 
 from PyQt6.QtCore import QDate, Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QFrame,
-    QGridLayout,    QHBoxLayout,
+    QGridLayout,
+    QHBoxLayout,
     QLabel,
     QPushButton,
     QSizePolicy,
+    QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -23,6 +27,12 @@ class _VoidSignal(Protocol):
 
 class _DateSignal(Protocol):
     def connect(self, slot: Callable[[QDate], None]) -> object: ...
+
+
+class _CalendarViewMode(Enum):
+    DAY = auto()
+    MONTH = auto()
+    YEAR = auto()
 
 
 class _CalendarDayCell(QWidget):
@@ -108,6 +118,10 @@ class CalendarWidget(QWidget):
     date_selected = pyqtSignal(QDate)
 
     _DAY_ORDER: List[int] = [1, 2, 3, 4, 5, 6, 7]  # Monday -> Sunday
+    _MONTH_GRID_COLUMNS = 4
+    _YEAR_GRID_COLUMNS = 4
+    _YEAR_RANGE_SIZE = 20
+    _MAX_YEAR = 9999
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -118,9 +132,13 @@ class CalendarWidget(QWidget):
         self._today = QDate.currentDate()
         self._visible_month = QDate(self._today.year(), self._today.month(), 1)
         self._day_cells: list[_CalendarDayCell] = []
+        self._month_buttons: list[QPushButton] = []
+        self._year_buttons: list[QPushButton] = []
+        self._view_mode: Optional[_CalendarViewMode] = None
+        self._year_range_start = self._compute_year_range_start(self._visible_month.year())
 
         self._build_ui()
-        self._populate_days()
+        self._switch_view(_CalendarViewMode.DAY)
 
     def _build_ui(self) -> None:
         main_layout = QVBoxLayout(self)
@@ -134,32 +152,56 @@ class CalendarWidget(QWidget):
         self._previous_button = self._create_nav_button("<")
         self._next_button = self._create_nav_button(">")
 
-        self._month_label = QLabel(self)
-        self._month_label.setFont(constants.create_calendar_header_font())
-        self._month_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._month_label.setStyleSheet(
-            f"color: {constants.CALENDAR_HEADER_TEXT_COLOR}; border: none;"
-        )
+        self._header_button = self._create_header_button()
 
         header_layout.addWidget(self._previous_button, alignment=Qt.AlignmentFlag.AlignLeft)
         header_layout.addStretch()
-        header_layout.addWidget(self._month_label, stretch=0, alignment=Qt.AlignmentFlag.AlignCenter)
+        header_layout.addWidget(self._header_button, stretch=0, alignment=Qt.AlignmentFlag.AlignCenter)
         header_layout.addStretch()
         header_layout.addWidget(self._next_button, alignment=Qt.AlignmentFlag.AlignRight)
 
         previous_signal = cast(_VoidSignal, self._previous_button.clicked)
-        previous_signal.connect(self._go_to_previous_month)
+        previous_signal.connect(self._on_previous_clicked)
         next_signal = cast(_VoidSignal, self._next_button.clicked)
-        next_signal.connect(self._go_to_next_month)
+        next_signal.connect(self._on_next_clicked)
+        header_signal = cast(_VoidSignal, self._header_button.clicked)
+        header_signal.connect(self._on_header_clicked)
 
         main_layout.addLayout(header_layout)
+
+        self._mode_label = QLabel(self)
+        self._mode_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._mode_label.setFont(constants.create_calendar_day_label_font())
+        self._mode_label.setStyleSheet(
+            f"color: {constants.CALENDAR_MUTED_DAY_TEXT_COLOR}; border: none;"
+        )
+        self._mode_label.setVisible(False)
+        main_layout.addWidget(self._mode_label, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        self._content_stack = QStackedWidget(self)
+        self._content_stack.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+        self._day_view = self._build_day_view()
+        self._content_stack.addWidget(self._day_view)
+        self._month_view = self._build_month_view()
+        self._content_stack.addWidget(self._month_view)
+        self._year_view = self._build_year_view()
+        self._content_stack.addWidget(self._year_view)
+
+        main_layout.addWidget(self._content_stack, alignment=Qt.AlignmentFlag.AlignCenter)
+
+    def _build_day_view(self) -> QWidget:
+        container = QWidget(self)
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(constants.CALENDAR_GRID_SPACING)
 
         day_label_layout = QHBoxLayout()
         day_label_layout.setContentsMargins(0, 0, 0, 0)
         day_label_layout.setSpacing(constants.CALENDAR_GRID_SPACING)
 
         for day_name in self._weekday_labels():
-            label = QLabel(day_name, self)
+            label = QLabel(day_name, container)
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setFont(constants.create_calendar_day_label_font())
             label.setFixedWidth(constants.CALENDAR_DAY_CELL_SIZE)
@@ -170,9 +212,9 @@ class CalendarWidget(QWidget):
             label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             day_label_layout.addWidget(label)
 
-        main_layout.addLayout(day_label_layout)
+        layout.addLayout(day_label_layout)
 
-        grid_container = QWidget(self)
+        grid_container = QWidget(container)
         grid_container.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         grid_layout = QGridLayout(grid_container)
         grid_layout.setContentsMargins(0, 0, 0, 0)
@@ -180,6 +222,7 @@ class CalendarWidget(QWidget):
         grid_layout.setVerticalSpacing(constants.CALENDAR_GRID_SPACING)
         grid_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        self._day_cells.clear()
         for index in range(6 * 7):
             cell = _CalendarDayCell(grid_container)
             cell_signal = cast(_DateSignal, cell.clicked)
@@ -189,13 +232,107 @@ class CalendarWidget(QWidget):
             grid_layout.addWidget(cell, row, column, alignment=Qt.AlignmentFlag.AlignCenter)
             self._day_cells.append(cell)
 
-        main_layout.addWidget(grid_container, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(grid_container, alignment=Qt.AlignmentFlag.AlignCenter)
+        return container
+
+    def _build_month_view(self) -> QWidget:
+        container = QWidget(self)
+        layout = QGridLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setHorizontalSpacing(constants.CALENDAR_GRID_SPACING)
+        layout.setVerticalSpacing(constants.CALENDAR_GRID_SPACING)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._month_buttons.clear()
+        for index in range(1, 13):
+            month_name = calendar.month_abbr[index]
+            button = self._create_option_button(month_name, container)
+            month_signal = cast(_VoidSignal, button.clicked)
+            month_signal.connect(partial(self._on_month_clicked, index))
+            row = (index - 1) // self._MONTH_GRID_COLUMNS
+            column = (index - 1) % self._MONTH_GRID_COLUMNS
+            layout.addWidget(button, row, column)
+            self._month_buttons.append(button)
+
+        return container
+
+    def _build_year_view(self) -> QWidget:
+        container = QWidget(self)
+        layout = QGridLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setHorizontalSpacing(constants.CALENDAR_GRID_SPACING)
+        layout.setVerticalSpacing(constants.CALENDAR_GRID_SPACING)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._year_buttons.clear()
+        for index in range(self._YEAR_RANGE_SIZE):
+            button = self._create_option_button("", container)
+            year_signal = cast(_VoidSignal, button.clicked)
+            year_signal.connect(partial(self._on_year_button_clicked, button))
+            row = index // self._YEAR_GRID_COLUMNS
+            column = index % self._YEAR_GRID_COLUMNS
+            layout.addWidget(button, row, column)
+            self._year_buttons.append(button)
+
+        return container
+
+    def _create_header_button(self) -> QPushButton:
+        button = QPushButton(self)
+        button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        button.setFlat(True)
+        button.setFont(constants.create_calendar_header_font())
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        button.setStyleSheet(
+            "QPushButton {"
+            "background-color: transparent;"
+            f"color: {constants.CALENDAR_HEADER_TEXT_COLOR};"
+            "border: none;"
+            "}"
+            "QPushButton:hover {"
+            f"color: {constants.CALENDAR_DAY_HOVER_TEXT_COLOR};"
+            "}"
+        )
+        return button
+
+    def _create_option_button(self, text: str, parent: QWidget) -> QPushButton:
+        button = QPushButton(text, parent)
+        button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        button.setFont(constants.create_calendar_day_font())
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        button.setFixedHeight(constants.CALENDAR_DAY_CELL_SIZE)
+        button.setMinimumWidth(constants.CALENDAR_DAY_CELL_SIZE * 2)
+        button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self._style_option_button(button, is_selected=False)
+        return button
+
+    def _style_option_button(self, button: QPushButton, *, is_selected: bool) -> None:
+        if is_selected:
+            background = constants.CALENDAR_TODAY_BACKGROUND
+            text_color = constants.CALENDAR_TODAY_TEXT_COLOR
+        else:
+            background = "transparent"
+            text_color = constants.CALENDAR_DAY_TEXT_COLOR
+
+        button.setStyleSheet(
+            "QPushButton {"
+            f"background-color: {background};"
+            f"color: {text_color};"
+            "border: none;"
+            f"border-radius: {constants.CALENDAR_DAY_CELL_RADIUS}px;"
+            "padding: 0;"
+            "}"
+            "QPushButton:hover {"
+            f"background-color: {constants.CALENDAR_DAY_HOVER_BACKGROUND};"
+            f"color: {constants.CALENDAR_DAY_HOVER_TEXT_COLOR};"
+            "}"
+        )
 
     def _create_nav_button(self, text: str) -> QPushButton:
         button = QPushButton(text, self)
         button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         button.setFixedSize(32, 32)
         button.setFont(constants.create_calendar_day_font())
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
         button.setStyleSheet(
             "QPushButton {"
             "background-color: transparent;"
@@ -207,6 +344,148 @@ class CalendarWidget(QWidget):
             "}"
         )
         return button
+
+    def _on_header_clicked(self) -> None:
+        if self._view_mode is None:
+            return
+
+        if self._view_mode is _CalendarViewMode.DAY:
+            self._switch_view(_CalendarViewMode.MONTH)
+        elif self._view_mode is _CalendarViewMode.MONTH:
+            self._switch_view(_CalendarViewMode.YEAR)
+        else:
+            self._switch_view(_CalendarViewMode.DAY)
+
+    def _on_previous_clicked(self) -> None:
+        if self._view_mode is _CalendarViewMode.DAY:
+            self._change_month(-1)
+        elif self._view_mode is _CalendarViewMode.MONTH:
+            self._change_year(-1)
+        else:
+            self._shift_year_range(-self._YEAR_RANGE_SIZE)
+
+    def _on_next_clicked(self) -> None:
+        if self._view_mode is _CalendarViewMode.DAY:
+            self._change_month(1)
+        elif self._view_mode is _CalendarViewMode.MONTH:
+            self._change_year(1)
+        else:
+            self._shift_year_range(self._YEAR_RANGE_SIZE)
+
+    def _switch_view(self, view: _CalendarViewMode) -> None:
+        if self._view_mode == view:
+            if view is _CalendarViewMode.DAY:
+                self._populate_days()
+            elif view is _CalendarViewMode.MONTH:
+                self._update_month_buttons()
+            else:
+                self._ensure_year_range_contains(self._visible_month.year())
+                self._update_year_buttons()
+            self._update_header()
+            return
+
+        self._view_mode = view
+
+        if view is _CalendarViewMode.DAY:
+            self._mode_label.setVisible(False)
+            self._content_stack.setCurrentWidget(self._day_view)
+            self._populate_days()
+        elif view is _CalendarViewMode.MONTH:
+            self._mode_label.setText("Months")
+            self._mode_label.setVisible(True)
+            self._content_stack.setCurrentWidget(self._month_view)
+            self._update_month_buttons()
+        else:
+            self._mode_label.setText("Years")
+            self._mode_label.setVisible(True)
+            self._content_stack.setCurrentWidget(self._year_view)
+            self._ensure_year_range_contains(self._visible_month.year())
+            self._update_year_buttons()
+
+        self._update_header()
+
+    def _update_header(self) -> None:
+        if self._view_mode is _CalendarViewMode.DAY:
+            month_name = calendar.month_name[self._visible_month.month()]
+            self._header_button.setText(f"{month_name} {self._visible_month.year()}")
+        elif self._view_mode is _CalendarViewMode.MONTH:
+            self._header_button.setText(str(self._visible_month.year()))
+        elif self._view_mode is _CalendarViewMode.YEAR:
+            start = self._year_range_start
+            end = start + self._YEAR_RANGE_SIZE - 1
+            self._header_button.setText(f"{start} - {end}")
+
+    def _update_month_buttons(self) -> None:
+        current_month = self._visible_month.month()
+        for index, button in enumerate(self._month_buttons, start=1):
+            is_selected = index == current_month
+            self._style_option_button(button, is_selected=is_selected)
+
+    def _update_year_buttons(self) -> None:
+        current_year = self._visible_month.year()
+        start = self._year_range_start
+        for offset, button in enumerate(self._year_buttons):
+            year = start + offset
+            button.setText(str(year))
+            button.setProperty("year", year)
+            self._style_option_button(button, is_selected=year == current_year)
+
+    def _on_month_clicked(self, month: int) -> None:
+        self._visible_month = QDate(self._visible_month.year(), month, 1)
+        self._switch_view(_CalendarViewMode.DAY)
+
+    def _on_year_button_clicked(self, button: QPushButton) -> None:
+        property_value = button.property("year")
+        if not isinstance(property_value, int):
+            return
+        self._visible_month = QDate(property_value, self._visible_month.month(), 1)
+        self._switch_view(_CalendarViewMode.MONTH)
+
+    def _change_month(self, delta: int) -> None:
+        self._visible_month = self._visible_month.addMonths(delta)
+        self._populate_days()
+        self._update_header()
+        if self._view_mode is _CalendarViewMode.MONTH:
+            self._update_month_buttons()
+        elif self._view_mode is _CalendarViewMode.YEAR:
+            self._ensure_year_range_contains(self._visible_month.year())
+            self._update_year_buttons()
+
+    def _change_year(self, delta: int) -> None:
+        self._visible_month = self._visible_month.addYears(delta)
+        self._update_month_buttons()
+        self._ensure_year_range_contains(self._visible_month.year())
+        self._update_year_buttons()
+        self._update_header()
+
+    def _shift_year_range(self, delta: int) -> None:
+        proposed = self._year_range_start + delta
+        min_start = 1
+        max_start = self._MAX_YEAR - self._YEAR_RANGE_SIZE + 1
+        if proposed < min_start:
+            proposed = min_start
+        if proposed > max_start:
+            proposed = max_start
+        self._year_range_start = self._compute_year_range_start(proposed)
+        self._update_year_buttons()
+        self._update_header()
+
+    def _ensure_year_range_contains(self, year: int) -> None:
+        end = self._year_range_start + self._YEAR_RANGE_SIZE - 1
+        if year < self._year_range_start or year > end:
+            self._year_range_start = self._compute_year_range_start(year)
+
+    def _compute_year_range_start(self, year: int) -> int:
+        span = self._YEAR_RANGE_SIZE
+        if year < 1:
+            return 1
+        base = (year // span) * span
+        if base < 1:
+            base = 1
+        max_start = self._MAX_YEAR - span + 1
+        if base > max_start:
+            base = max_start
+        return base
 
     def _weekday_labels(self) -> Iterable[str]:
         locale = calendar.LocaleTextCalendar(firstweekday=0)
@@ -224,9 +503,6 @@ class CalendarWidget(QWidget):
         start_offset = (month_start.dayOfWeek() - 1) % 7  # dayOfWeek: Monday=1
         start_date = month_start.addDays(-start_offset)
 
-        month_name = calendar.month_name[self._visible_month.month()]
-        self._month_label.setText(f"{month_name} {self._visible_month.year()}")
-
         for index, cell in enumerate(self._day_cells):
             day_date = start_date.addDays(index)
             in_current_month = (
@@ -239,16 +515,6 @@ class CalendarWidget(QWidget):
                 and day_date.day() == self._today.day()
             )
             cell.set_day(day_date, in_current_month=in_current_month, is_today=is_today)
-
-    def _change_month(self, delta: int) -> None:
-        self._visible_month = self._visible_month.addMonths(delta)
-        self._populate_days()
-
-    def _go_to_previous_month(self) -> None:
-        self._change_month(-1)
-
-    def _go_to_next_month(self) -> None:
-        self._change_month(1)
 
     def _emit_date_selected(self, date: QDate) -> None:
         self.date_selected.emit(date)
