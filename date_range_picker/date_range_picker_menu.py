@@ -8,6 +8,7 @@ from PyQt6.QtGui import QIcon, QMouseEvent, QPainter, QPixmap
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
     QApplication,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -17,6 +18,7 @@ from PyQt6.QtWidgets import (
 )
 
 from .animation.slide_animator import SlideAnimator
+from .components.basic_button import BasicButton
 from .components.button_strip import ButtonStrip
 from .components.calendar_widget import CalendarWidget
 from .components.date_time_range_selector import (
@@ -129,6 +131,53 @@ class DateRangePickerMenu(QWidget):
         main_layout.addWidget(button_container)
 
         main_layout.addStretch(1)
+        main_layout.addSpacing(16)
+
+        divider = QFrame(self)
+        divider.setFrameShape(QFrame.Shape.NoFrame)
+        divider.setFixedHeight(1)
+        divider.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        divider.setStyleSheet(f"background-color: {constants.TRACK_BACKGROUND};")
+        main_layout.addWidget(divider)
+
+        main_layout.addSpacing(16)
+
+        action_container = QWidget(self)
+        action_layout = QHBoxLayout(action_container)
+        action_layout.setContentsMargins(0, 0, 0, 0)
+        action_layout.setSpacing(0)
+
+        action_layout.addStretch(1)
+
+        self._cancel_button = BasicButton(
+            self,
+            label="Cancel",
+            width=72,
+            height=34,
+            background_color=constants.WINDOW_BACKGROUND,
+            border_color=constants.BUTTON_SELECTED_COLOR,
+            hover_background_color="#f2f2f2",
+            pressed_background_color="#f2f2f2",
+            hover_font_color=constants.WINDOW_BACKGROUND,
+        )
+        action_layout.addWidget(self._cancel_button)
+
+        action_layout.addSpacing(12)
+
+        self._go_to_button = BasicButton(
+            self,
+            label="Go to",
+            width=64,
+            height=34,
+            background_color="#ffffff",
+            border_color="#ffffff",
+            hover_background_color="#f2f2f2",
+            pressed_background_color="#f2f2f2",
+            font_color=constants.WINDOW_BACKGROUND,
+        )
+        action_layout.addWidget(self._go_to_button)
+
+        main_layout.addWidget(action_container)
 
         self._sliding_track.set_state(position=self._current_position, width=self._current_width)
 
