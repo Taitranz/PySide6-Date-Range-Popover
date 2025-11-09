@@ -11,7 +11,7 @@ class DraggableHeaderStrip(QWidget):
         self.parent_widget: QWidget = parent_widget
         self.drag_position: QPoint = QPoint()
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #d9d9d9;")
+        self.setStyleSheet("background-color: #d9d9d9; border-radius: 0px;")
     
     def mousePressEvent(self, a0: QMouseEvent | None) -> None:
         """Handle mouse press to start drag."""
@@ -27,8 +27,8 @@ class DraggableHeaderStrip(QWidget):
 class DateRangePicker(QWidget):
     def __init__(self):
         super().__init__()
-        self.setMinimumSize(300, 600)
-        self.setMaximumSize(300, 600)
+        self.setMinimumSize(302, 600)
+        self.setMaximumSize(302, 600)
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet("background-color: #1f1f1f; border-radius: 4px;")
@@ -78,7 +78,7 @@ class DateRangePicker(QWidget):
         date_font.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 96)
         date_button.setFont(date_font)
         date_button.setStyleSheet("text-align: left; padding: 0; margin: 0; border: none; outline: none;")
-        custom_range_button = QPushButton("Custom Range")
+        custom_range_button = QPushButton("Custom range")
         custom_range_button.setFixedWidth(105)
         custom_range_button.setMinimumHeight(0)
         custom_range_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
@@ -98,7 +98,7 @@ class DateRangePicker(QWidget):
         # Add square below buttons
         track_wrapper = QWidget()
         track_wrapper.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        track_wrapper.setStyleSheet("background-color: #1f1f1f; border-radius: 6px;")
+        track_wrapper.setStyleSheet("background-color: #1f1f1f;")
         track_wrapper_layout = QVBoxLayout(track_wrapper)
         track_wrapper_layout.setContentsMargins(0, 0, 0, 0)
         track_wrapper_layout.setSpacing(0)
@@ -163,7 +163,7 @@ class DateRangePicker(QWidget):
         # Create a container for the button strip and square
         button_container = QWidget()
         button_container.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        button_container.setStyleSheet("background-color: #b0b0b0;")
+        button_container.setStyleSheet("background-color: #b0b0b0; border-radius: 0px;")
         button_container_layout = QVBoxLayout(button_container)
         button_container_layout.setContentsMargins(0, 0, 0, 0)
         button_container_layout.setSpacing(0)
