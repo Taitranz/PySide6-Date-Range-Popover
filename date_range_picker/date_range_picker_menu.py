@@ -120,15 +120,17 @@ class DateRangePickerMenu(QWidget):
         )
 
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(
-            constants.MAIN_PADDING,
-            0,
-            constants.MAIN_PADDING,
-            constants.MAIN_PADDING,
-        )
+        main_layout.setContentsMargins(0, 0, 0, constants.MAIN_PADDING)
         main_layout.setSpacing(0)
-        main_layout.addWidget(self._header_strip)
-        main_layout.addWidget(button_container)
+
+        content_container = QWidget(self)
+        content_layout = QVBoxLayout(content_container)
+        content_layout.setContentsMargins(constants.MAIN_PADDING, 0, constants.MAIN_PADDING, 0)
+        content_layout.setSpacing(0)
+        content_layout.addWidget(self._header_strip)
+        content_layout.addWidget(button_container)
+
+        main_layout.addWidget(content_container)
 
         main_layout.addStretch(1)
         main_layout.addSpacing(16)
@@ -177,7 +179,15 @@ class DateRangePickerMenu(QWidget):
         )
         action_layout.addWidget(self._go_to_button)
 
-        main_layout.addWidget(action_container)
+        actions_wrapper = QWidget(self)
+        actions_wrapper_layout = QVBoxLayout(actions_wrapper)
+        actions_wrapper_layout.setContentsMargins(
+            constants.MAIN_PADDING, 0, constants.MAIN_PADDING, 0
+        )
+        actions_wrapper_layout.setSpacing(0)
+        actions_wrapper_layout.addWidget(action_container)
+
+        main_layout.addWidget(actions_wrapper)
 
         self._sliding_track.set_state(position=self._current_position, width=self._current_width)
 
