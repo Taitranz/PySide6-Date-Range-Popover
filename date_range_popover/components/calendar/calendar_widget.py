@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QLabel, QStackedWidget, QVBoxLayout, QW
 from ...exceptions import InvalidDateError
 from ...styles.theme import CalendarStyleConfig, LayoutConfig
 from ...validation import validate_date_range, validate_qdate
-from ...utils import connect_signal
+from ...utils import connect_signal, first_of_month
 from .day_view import CalendarDayView
 from .month_view import CalendarMonthView
 from .navigation import CalendarNavigation
@@ -71,6 +71,8 @@ class CalendarWidget(QWidget):
         self._view_mode: CalendarViewMode = CalendarViewMode.DAY
         self._range_start: QDate | None = None
         self._range_end: QDate | None = None
+        self._min_date: QDate | None = None
+        self._max_date: QDate | None = None
         self._year_range_start = self._compute_year_range_start(self._visible_month.year())
 
         self._navigation = CalendarNavigation(style=self._style)
@@ -110,13 +112,27 @@ class CalendarWidget(QWidget):
                 " border: none;"
             )
 
+    def set_constraints(self, *, min_date: QDate | None, max_date: QDate | None) -> None:
+        """Limit selectable dates and navigation range."""
+        self._min_date = QDate(min_date) if isinstance(min_date, QDate) else None
+        self._max_date = QDate(max_date) if isinstance(max_date, QDate) else None
+        if self._range_start is not None:
+            self._range_start = self._clamp_date(self._range_start)
+        if self._range_end is not None:
+            self._range_end = self._clamp_date(self._range_end)
+        self._selected_date = self._clamp_date(self._selected_date)
+        self._visible_month = self._clamp_month(self._visible_month)
+        self._ensure_year_range_contains(self._visible_month.year())
+        self._refresh_views()
+
     def set_selected_date(self, date: QDate) -> None:
         """Set the selected date and make it visible."""
         validated = cast(QDate, validate_qdate(date, field_name="selected_date"))
+        validated = self._ensure_within_bounds(validated, "selected_date")
         if validated.year() < 1 or validated.year() > self._MAX_YEAR:
             raise InvalidDateError(f"selected_date must fall between years 1 and {self._MAX_YEAR}")
         self._selected_date = validated
-        self._visible_month = QDate(validated.year(), validated.month(), 1)
+        self._visible_month = self._clamp_month(validated)
         self._ensure_year_range_contains(validated.year())
         self._switch_view(CalendarViewMode.DAY)
 
@@ -128,16 +144,9 @@ class CalendarWidget(QWidget):
             field_name="selected_range",
             allow_partial=False,
         )
-        self._range_start = cast(QDate, start_candidate)
-        self._range_end = cast(QDate, end_candidate)
-        if self._view_mode is CalendarViewMode.DAY:
-            self._day_view.update_days(
-                visible_month=self._visible_month,
-                today=self._today,
-                selected_date=self._selected_date,
-                range_start=self._range_start,
-                range_end=self._range_end,
-            )
+        self._range_start = self._ensure_within_bounds(cast(QDate, start_candidate), "selected_range.start")
+        self._range_end = self._ensure_within_bounds(cast(QDate, end_candidate), "selected_range.end")
+        self._refresh_views()
 
     def clear_selected_range(self) -> None:
         """Clear any highlighted range selection."""
@@ -145,40 +154,17 @@ class CalendarWidget(QWidget):
             return
         self._range_start = None
         self._range_end = None
-        if self._view_mode is CalendarViewMode.DAY:
-            self._day_view.update_days(
-                visible_month=self._visible_month,
-                today=self._today,
-                selected_date=self._selected_date,
-                range_start=None,
-                range_end=None,
-            )
+        self._refresh_views()
 
     def set_visible_month(self, month: QDate) -> None:
         """Change the month currently rendered by the widget."""
         validated = cast(QDate, validate_qdate(month, field_name="visible_month"))
-        target = QDate(validated.year(), validated.month(), 1)
+        target = self._clamp_month(validated)
         if target == self._visible_month:
             return
         self._visible_month = target
         self._ensure_year_range_contains(target.year())
-        if self._view_mode is CalendarViewMode.DAY:
-            self._day_view.update_days(
-                visible_month=self._visible_month,
-                today=self._today,
-                selected_date=self._selected_date,
-                range_start=self._range_start,
-                range_end=self._range_end,
-            )
-        elif self._view_mode is CalendarViewMode.MONTH:
-            self._month_view.set_selected_month(self._visible_month.month())
-        else:
-            self._year_view.set_year_range(
-                self._year_range_start,
-                current_year=self._visible_month.year(),
-            )
-        self._update_header()
-        self._update_navigation_state()
+        self._refresh_views()
 
     # Internal logic -----------------------------------------------------------------
 
@@ -225,25 +211,19 @@ class CalendarWidget(QWidget):
         connect_signal(self._year_view.year_selected, self._on_year_selected)
 
     def _on_day_selected(self, date: QDate) -> None:
-        self._selected_date = date
-        self._visible_month = QDate(date.year(), date.month(), 1)
-        self._day_view.update_days(
-            visible_month=self._visible_month,
-            today=self._today,
-            selected_date=self._selected_date,
-            range_start=self._range_start,
-            range_end=self._range_end,
-        )
-        self._update_header()
-        self._update_navigation_state()
-        self.date_selected.emit(date)
+        self._selected_date = self._ensure_within_bounds(date, "selected_date")
+        self._visible_month = self._clamp_month(self._selected_date)
+        self._refresh_views()
+        self.date_selected.emit(self._selected_date)
 
     def _on_month_selected(self, month: int) -> None:
-        self._visible_month = QDate(self._visible_month.year(), month, 1)
+        candidate = QDate(self._visible_month.year(), month, 1)
+        self._visible_month = self._clamp_month(candidate)
         self._switch_view(CalendarViewMode.DAY)
 
     def _on_year_selected(self, year: int) -> None:
-        self._visible_month = QDate(year, self._visible_month.month(), 1)
+        candidate = QDate(year, self._visible_month.month(), 1)
+        self._visible_month = self._clamp_month(candidate)
         self._switch_view(CalendarViewMode.MONTH)
 
     def _on_header_clicked(self) -> None:
@@ -274,34 +254,21 @@ class CalendarWidget(QWidget):
         self._view_mode = view
         if view is CalendarViewMode.DAY:
             self._content_stack.setCurrentWidget(self._day_view)
-            self._day_view.update_days(
-                visible_month=self._visible_month,
-                today=self._today,
-                selected_date=self._selected_date,
-                range_start=self._range_start,
-                range_end=self._range_end,
-            )
             if self._mode_label_container is not None:
                 self._mode_label_container.setVisible(False)
         elif view is CalendarViewMode.MONTH:
             self._content_stack.setCurrentWidget(self._month_view)
-            self._month_view.set_selected_month(self._visible_month.month())
             if self._mode_label_container is not None and self._mode_label is not None:
                 self._mode_label_container.setVisible(True)
                 self._mode_label.setText("Months")
         else:
             self._content_stack.setCurrentWidget(self._year_view)
             self._ensure_year_range_contains(self._visible_month.year())
-            self._year_view.set_year_range(
-                self._year_range_start,
-                current_year=self._visible_month.year(),
-            )
             if self._mode_label_container is not None and self._mode_label is not None:
                 self._mode_label_container.setVisible(True)
                 self._mode_label.setText("Years")
 
-        self._update_header()
-        self._update_navigation_state()
+        self._refresh_views()
 
     def _update_header(self) -> None:
         if self._view_mode is CalendarViewMode.DAY:
@@ -315,20 +282,15 @@ class CalendarWidget(QWidget):
             self._navigation.set_header_text(f"{start} - {end}")
 
     def _update_navigation_state(self) -> None:
-        today = QDate.currentDate()
-        previous_enabled = True
         if self._view_mode is CalendarViewMode.DAY:
-            next_month = self._visible_month.addMonths(1)
-            next_enabled = (
-                next_month.year() < today.year()
-                or (next_month.year() == today.year() and next_month.month() <= today.month())
-            )
+            previous_enabled = self._can_move_month(-1)
+            next_enabled = self._can_move_month(1)
         elif self._view_mode is CalendarViewMode.MONTH:
-            next_year = self._visible_month.year() + 1
-            next_enabled = next_year <= today.year()
+            previous_enabled = self._can_move_year(-1)
+            next_enabled = self._can_move_year(1)
         else:
-            range_end = self._year_range_start + self._YEAR_RANGE_SIZE - 1
-            next_enabled = range_end < today.year()
+            previous_enabled = self._can_shift_year_range(-self._YEAR_RANGE_SIZE)
+            next_enabled = self._can_shift_year_range(self._YEAR_RANGE_SIZE)
 
         self._navigation.set_navigation_enabled(
             previous_enabled=previous_enabled,
@@ -336,51 +298,129 @@ class CalendarWidget(QWidget):
         )
 
     def _change_month(self, delta: int) -> None:
-        self._visible_month = self._visible_month.addMonths(delta)
+        candidate = self._visible_month.addMonths(delta)
+        self._visible_month = self._clamp_month(candidate)
+        self._ensure_year_range_contains(self._visible_month.year())
+        self._refresh_views()
+
+    def _change_year(self, delta: int) -> None:
+        candidate = self._visible_month.addYears(delta)
+        self._visible_month = self._clamp_month(candidate)
+        self._ensure_year_range_contains(self._visible_month.year())
+        self._refresh_views()
+
+    def _shift_year_range(self, delta: int) -> None:
+        proposed = self._year_range_start + delta
+        self._year_range_start = self._clamp_year_range_start(proposed)
+        self._refresh_views()
+
+    def _ensure_year_range_contains(self, year: int) -> None:
+        end = self._year_range_start + self._YEAR_RANGE_SIZE - 1
+        if year < self._year_range_start or year > end:
+            candidate = self._compute_year_range_start(year)
+            self._year_range_start = self._clamp_year_range_start(candidate)
+
+    def _refresh_views(self) -> None:
         self._day_view.update_days(
             visible_month=self._visible_month,
             today=self._today,
             selected_date=self._selected_date,
             range_start=self._range_start,
             range_end=self._range_end,
+            min_date=self._min_date,
+            max_date=self._max_date,
         )
-        self._month_view.set_selected_month(self._visible_month.month())
-        self._ensure_year_range_contains(self._visible_month.year())
-        self._year_view.set_year_range(
-            self._year_range_start,
-            current_year=self._visible_month.year(),
-        )
+        if self._view_mode is CalendarViewMode.MONTH:
+            self._month_view.set_selected_month(self._visible_month.month())
+        elif self._view_mode is CalendarViewMode.YEAR:
+            self._ensure_year_range_contains(self._visible_month.year())
+            self._year_view.set_year_range(
+                self._year_range_start,
+                current_year=self._visible_month.year(),
+            )
         self._update_header()
         self._update_navigation_state()
 
-    def _change_year(self, delta: int) -> None:
-        self._visible_month = self._visible_month.addYears(delta)
-        self._month_view.set_selected_month(self._visible_month.month())
-        self._ensure_year_range_contains(self._visible_month.year())
-        self._year_view.set_year_range(
-            self._year_range_start,
-            current_year=self._visible_month.year(),
-        )
-        self._update_header()
-        self._update_navigation_state()
+    def _ensure_within_bounds(self, date: QDate, field_name: str) -> QDate:
+        if self._min_date is not None and date < self._min_date:
+            raise InvalidDateError(f"{field_name} must be on or after the configured min_date")
+        if self._max_date is not None and date > self._max_date:
+            raise InvalidDateError(f"{field_name} must be on or before the configured max_date")
+        return date
 
-    def _shift_year_range(self, delta: int) -> None:
-        proposed = self._year_range_start + delta
-        min_start = 1
-        max_start = self._MAX_YEAR - self._YEAR_RANGE_SIZE + 1
-        proposed = max(min_start, min(proposed, max_start))
-        self._year_range_start = self._compute_year_range_start(proposed)
-        self._year_view.set_year_range(
-            self._year_range_start,
-            current_year=self._visible_month.year(),
-        )
-        self._update_header()
-        self._update_navigation_state()
+    def _clamp_date(self, date: QDate) -> QDate:
+        result = QDate(date)
+        if self._min_date is not None and result < self._min_date:
+            result = QDate(self._min_date)
+        if self._max_date is not None and result > self._max_date:
+            result = QDate(self._max_date)
+        return result
 
-    def _ensure_year_range_contains(self, year: int) -> None:
-        end = self._year_range_start + self._YEAR_RANGE_SIZE - 1
-        if year < self._year_range_start or year > end:
-            self._year_range_start = self._compute_year_range_start(year)
+    def _clamp_month(self, date: QDate) -> QDate:
+        target = first_of_month(date)
+        min_month = self._first_allowed_month()
+        max_month = self._last_allowed_month()
+        if min_month is not None and target < min_month:
+            return QDate(min_month)
+        if max_month is not None and target > max_month:
+            return QDate(max_month)
+        return target
+
+    def _first_allowed_month(self) -> QDate | None:
+        if self._min_date is None:
+            return None
+        return first_of_month(self._min_date)
+
+    def _last_allowed_month(self) -> QDate | None:
+        if self._max_date is None:
+            return None
+        return first_of_month(self._max_date)
+
+    def _min_year(self) -> int | None:
+        return self._min_date.year() if self._min_date is not None else None
+
+    def _max_year(self) -> int | None:
+        return self._max_date.year() if self._max_date is not None else None
+
+    def _year_range_limits(self) -> tuple[int, int]:
+        span = self._YEAR_RANGE_SIZE
+        min_start = 1 if self._min_date is None else self._compute_year_range_start(self._min_date.year())
+        max_start = self._MAX_YEAR - span + 1
+        if self._max_date is not None:
+            max_start = min(max_start, self._compute_year_range_start(self._max_date.year()))
+        if min_start > max_start:
+            min_start = max_start
+        return min_start, max_start
+
+    def _clamp_year_range_start(self, start: int) -> int:
+        min_start, max_start = self._year_range_limits()
+        return max(min_start, min(start, max_start))
+
+    def _can_move_month(self, delta: int) -> bool:
+        candidate = first_of_month(self._visible_month.addMonths(delta))
+        min_month = self._first_allowed_month()
+        if min_month is not None and candidate < min_month:
+            return False
+        max_month = self._last_allowed_month()
+        if max_month is not None and candidate > max_month:
+            return False
+        return True
+
+    def _can_move_year(self, delta: int) -> bool:
+        candidate_year = self._visible_month.year() + delta
+        min_year = self._min_year()
+        max_year = self._max_year()
+        if min_year is not None and candidate_year < min_year:
+            return False
+        if max_year is not None and candidate_year > max_year:
+            return False
+        return 1 <= candidate_year <= self._MAX_YEAR
+
+    def _can_shift_year_range(self, delta: int) -> bool:
+        min_start, max_start = self._year_range_limits()
+        if delta < 0:
+            return self._year_range_start > min_start
+        return self._year_range_start < max_start
 
     def _compute_year_range_start(self, year: int) -> int:
         span = self._YEAR_RANGE_SIZE

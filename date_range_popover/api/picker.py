@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from PyQt6.QtCore import QDate, QSize, Qt, pyqtSignal
+from PyQt6.QtCore import QDate, QTime, QSize, Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -52,7 +52,10 @@ class DateRangePicker(QWidget):
         registry = StyleRegistry(self._config.theme)
         self._style_manager = StyleManager(registry)
         self._layout_config = self._config.theme.layout
-        self._state_manager = DatePickerStateManager()
+        self._state_manager = DatePickerStateManager(
+            min_date=self._config.min_date,
+            max_date=self._config.max_date,
+        )
         self._coordinator = DatePickerCoordinator(self._state_manager, self._style_manager)
         self._animator = SlideAnimator(parent=self)
         self._current_track_position = 0
@@ -65,8 +68,24 @@ class DateRangePicker(QWidget):
             palette=self._style_manager.theme.palette,
             layout=self._layout_config,
         )
-        self._date_time_selector = DateTimeSelector(self, mode=GO_TO_DATE, palette=self._style_manager.theme.palette)
+        (
+            default_start_date,
+            default_end_date,
+            default_start_time,
+            default_end_time,
+        ) = self._resolve_initial_input_values()
+        self._date_time_selector = DateTimeSelector(
+            self,
+            mode=GO_TO_DATE,
+            palette=self._style_manager.theme.palette,
+            primary_date=default_start_date,
+            secondary_date=default_end_date,
+            primary_time=default_start_time,
+            secondary_time=default_end_time,
+            time_step_minutes=self._config.time_step_minutes,
+        )
         self._calendar = CalendarWidget(self, style=registry.calendar_config())
+        self._calendar.set_constraints(min_date=self._config.min_date, max_date=self._config.max_date)
         self._cancel_button = BasicButton(self, label="Cancel", width=72, layout=self._layout_config)
         self._go_to_button = BasicButton(self, label="Go to", width=64, layout=self._layout_config)
 
@@ -102,6 +121,7 @@ class DateRangePicker(QWidget):
         """Release long-lived objects and stop active animations."""
         LOGGER.info("Cleaning up DateRangePicker resources")
         self._animator.stop()
+        self._date_time_selector.cleanup()
         self._coordinator.deleteLater()
         self._state_manager.deleteLater()
 
@@ -323,6 +343,31 @@ class DateRangePicker(QWidget):
         self.setMinimumHeight(height)
         self.setMaximumHeight(height)
         self.resize(self.width(), height)
+
+    def _resolve_initial_input_values(self) -> tuple[QDate, QDate, QTime | None, QTime | None]:
+        today = QDate.currentDate()
+        start_date = today
+        end_date = today
+        start_time: QTime | None = None
+        end_time: QTime | None = None
+
+        if self._config.initial_range is not None:
+            initial = self._config.initial_range
+            if initial.start_date is not None:
+                start_date = initial.start_date
+            if initial.end_date is not None:
+                end_date = initial.end_date
+            else:
+                end_date = start_date
+            start_time = initial.start_time
+            end_time = initial.end_time
+        elif self._config.initial_date is not None:
+            start_date = self._config.initial_date
+            end_date = self._config.initial_date
+        if end_time is None:
+            end_time = start_time
+
+        return start_date, end_date, start_time, end_time
 
 
 __all__ = ["DateRangePicker"]

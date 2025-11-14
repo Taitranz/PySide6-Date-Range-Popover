@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable, Final, Literal
 
-from PyQt6.QtCore import QDate, QEvent, QObject, Qt, pyqtSignal, QStringListModel
+from PyQt6.QtCore import QCoreApplication, QDate, QEvent, QObject, Qt, QTime, pyqtSignal, QStringListModel
 from PyQt6.QtGui import QMouseEvent
 from PyQt6.QtWidgets import (
     QApplication,
@@ -40,6 +40,11 @@ class DateTimeSelector(QWidget):
         *,
         mode: ModeLiteral = GO_TO_DATE,
         palette: ColorPalette | None = None,
+        primary_date: QDate | None = None,
+        secondary_date: QDate | None = None,
+        primary_time: QTime | None = None,
+        secondary_time: QTime | None = None,
+        time_step_minutes: int = 15,
     ) -> None:
         super().__init__(parent)
 
@@ -48,6 +53,23 @@ class DateTimeSelector(QWidget):
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         self._mode: ModeLiteral = mode
+        self._default_single_date_text = self._format_date_text(primary_date)
+        range_start_text = self._default_single_date_text
+        range_end_text = (
+            self._format_date_text(secondary_date)
+            if secondary_date is not None and secondary_date.isValid()
+            else range_start_text
+        )
+        self._default_range_date_texts = (range_start_text, range_end_text)
+        self._default_single_time_text = self._format_time_text(primary_time)
+        range_start_time_text = self._default_single_time_text
+        range_end_time_text = (
+            self._format_time_text(secondary_time)
+            if secondary_time is not None and secondary_time.isValid()
+            else range_start_time_text
+        )
+        self._default_range_time_texts = (range_start_time_text, range_end_time_text)
+        self._time_step_minutes = max(1, min(time_step_minutes, 60))
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
         self._layout.setSpacing(16)
@@ -58,11 +80,13 @@ class DateTimeSelector(QWidget):
         self._date_input_handlers: dict[InputWithIcon, Callable[[str], None]] = {}
         self._time_inputs: list[InputWithIcon] = []
         self._time_model: QStringListModel | None = None
+        self._installed_app: QCoreApplication | None = None
 
         self.apply_palette(self._palette)
-        app = QApplication.instance()
+        app: QCoreApplication | None = QApplication.instance()
         if app is not None:
             app.installEventFilter(self)
+            self._installed_app = app
         self._build_ui()
 
     def apply_palette(self, palette: ColorPalette) -> None:
@@ -173,11 +197,15 @@ class DateTimeSelector(QWidget):
             row_layout.setContentsMargins(0, 0, 0, 0)
             row_layout.setSpacing(8)
 
-            date_input = self._create_input(self, text="2025-11-04", is_date=True)
+            date_input = self._create_input(
+                self,
+                text=self._default_single_date_text,
+                is_date=True,
+            )
             self._go_to_date_input = date_input
             time_input = self._create_input(
                 self,
-                text="00:00",
+                text=self._default_single_time_text,
                 width=100,
                 icon_path=str(CLOCK_ICON_PATH),
                 is_date=False,
@@ -192,19 +220,19 @@ class DateTimeSelector(QWidget):
 
         if self._mode == CUSTOM_DATE_RANGE:
             self._layout.setSpacing(16)
-            for _ in range(2):
+            for index in range(2):
                 row_layout = QHBoxLayout()
                 row_layout.setContentsMargins(0, 0, 0, 0)
                 row_layout.setSpacing(8)
 
                 date_input = self._create_input(
                     self,
-                    text="2025-11-04",
+                    text=self._default_range_date_texts[index],
                     is_date=True,
                 )
                 time_input = self._create_input(
                     self,
-                    text="00:00",
+                    text=self._default_range_time_texts[index],
                     width=100,
                     icon_path=str(CLOCK_ICON_PATH),
                     is_date=False,
@@ -273,7 +301,7 @@ class DateTimeSelector(QWidget):
     def _attach_time_completer(self, line_edit: QLineEdit) -> None:
         if self._time_model is None:
             self._time_model = QStringListModel(
-                self._generate_time_options(15),
+                self._generate_time_options(),
                 self,
             )
         completer = QCompleter(self._time_model, self)
@@ -303,7 +331,8 @@ class DateTimeSelector(QWidget):
             if popup is not None and popup.isVisible():
                 popup.hide()
 
-    def _generate_time_options(self, step_minutes: int) -> list[str]:
+    def _generate_time_options(self) -> list[str]:
+        step_minutes = max(1, min(self._time_step_minutes, 60))
         return [
             f"{hour:02d}:{minute:02d}"
             for hour in range(24)
@@ -407,6 +436,19 @@ class DateTimeSelector(QWidget):
             window.setFocus(Qt.FocusReason.OtherFocusReason)
         else:
             self.setFocus(Qt.FocusReason.OtherFocusReason)
+
+    def cleanup(self) -> None:
+        if self._installed_app is not None:
+            self._installed_app.removeEventFilter(self)
+            self._installed_app = None
+
+    def _format_date_text(self, date: QDate | None) -> str:
+        target = date if (date is not None and date.isValid()) else QDate.currentDate()
+        return target.toString("yyyy-MM-dd")
+
+    def _format_time_text(self, time: QTime | None) -> str:
+        target = time if (time is not None and time.isValid()) else QTime.currentTime()
+        return target.toString("HH:mm")
 
 
 __all__ = [

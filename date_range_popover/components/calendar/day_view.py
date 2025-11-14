@@ -131,6 +131,8 @@ class CalendarDayView(QWidget):
         selected_date: QDate,
         range_start: QDate | None = None,
         range_end: QDate | None = None,
+        min_date: QDate | None = None,
+        max_date: QDate | None = None,
     ) -> None:
         start_julian: int | None = None
         end_julian: int | None = None
@@ -148,7 +150,10 @@ class CalendarDayView(QWidget):
                 and day_date.year() == visible_month.year()
             )
             is_selected: bool = day_date.toJulianDay() == selected_date.toJulianDay()
-            is_future: bool = bool(today.daysTo(day_date) > 0)
+            is_disabled = (
+                (min_date is not None and day_date < min_date)
+                or (max_date is not None and day_date > max_date)
+            )
             day_julian = day_date.toJulianDay()
             is_range_start = start_julian is not None and day_julian == start_julian
             is_range_end = end_julian is not None and day_julian == end_julian
@@ -161,8 +166,8 @@ class CalendarDayView(QWidget):
             cell.set_day(
                 day_date,
                 in_current_month=in_current_month,
-                is_selected=is_selected,
-                is_future=is_future,
+                is_selected=is_selected and not is_disabled,
+                is_disabled=is_disabled,
                 is_range_start=is_range_start,
                 is_range_end=is_range_end,
                 is_in_range=is_in_range,

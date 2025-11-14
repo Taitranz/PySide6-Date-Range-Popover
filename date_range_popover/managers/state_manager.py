@@ -6,6 +6,7 @@ from typing import Tuple, cast
 
 from PyQt6.QtCore import QDate, QObject, pyqtSignal
 
+from ..exceptions import InvalidDateError
 from ..validation import validate_date_range, validate_qdate
 from ..utils import first_of_month, get_logger
 
@@ -37,18 +38,30 @@ class DatePickerStateManager(QObject):
     visible_month_changed = pyqtSignal(QDate)
     state_changed = pyqtSignal(DatePickerState)
 
-    def __init__(self) -> None:
+    def __init__(self, *, min_date: QDate | None = None, max_date: QDate | None = None) -> None:
         super().__init__()
-        today = QDate.currentDate()
+        self._min_date = QDate(min_date) if isinstance(min_date, QDate) else None
+        self._max_date = QDate(max_date) if isinstance(max_date, QDate) else None
+        if self._min_date is not None and self._max_date is not None and self._min_date > self._max_date:
+            raise InvalidDateError("min_date must be on or before max_date")
+        initial_date = self._default_selection_date()
         self._state = DatePickerState(
             mode=PickerMode.DATE,
-            selected_dates=(today, None),
-            visible_month=QDate(today.year(), today.month(), 1),
+            selected_dates=(initial_date, None),
+            visible_month=first_of_month(initial_date),
         )
 
     @property
     def state(self) -> DatePickerState:
         return self._state
+
+    @property
+    def min_date(self) -> QDate | None:
+        return self._min_date
+
+    @property
+    def max_date(self) -> QDate | None:
+        return self._max_date
 
     def set_mode(self, mode: PickerMode) -> None:
         """Update the active picker mode and notify listeners."""
@@ -62,6 +75,7 @@ class DatePickerStateManager(QObject):
     def select_date(self, date: QDate) -> None:
         """Select a single date and clear any existing range selection."""
         validated = cast(QDate, validate_qdate(date, field_name="selected_date"))
+        validated = self._ensure_within_bounds(validated, "selected_date")
         LOGGER.debug("Selecting date: %s", validated.toString("yyyy-MM-dd"))
         current_start, current_end = self._state.selected_dates
         if current_start == validated and current_end is None:
@@ -84,6 +98,8 @@ class DatePickerStateManager(QObject):
         )
         validated_start = cast(QDate, start_candidate)
         validated_end = cast(QDate, end_candidate)
+        validated_start = self._ensure_within_bounds(validated_start, "selected_range.start")
+        validated_end = self._ensure_within_bounds(validated_end, "selected_range.end")
         LOGGER.debug(
             "Selecting range: %s -> %s",
             validated_start.toString("yyyy-MM-dd"),
@@ -100,7 +116,7 @@ class DatePickerStateManager(QObject):
     def set_visible_month(self, month: QDate) -> None:
         """Change the month displayed in the calendar UI."""
         validated_month = cast(QDate, validate_qdate(month, field_name="visible_month"))
-        target = first_of_month(validated_month)
+        target = self._clamp_visible_month(validated_month)
         LOGGER.debug("Updating visible month to %s", target.toString("yyyy-MM"))
         if target == self._state.visible_month:
             return
@@ -110,15 +126,15 @@ class DatePickerStateManager(QObject):
 
     def reset(self) -> None:
         """Reset the internal state to today's date in ``DATE`` mode."""
-        today = QDate.currentDate()
-        LOGGER.debug("Resetting picker state to %s", today.toString("yyyy-MM-dd"))
+        default_date = self._default_selection_date()
+        LOGGER.debug("Resetting picker state to %s", default_date.toString("yyyy-MM-dd"))
         self._update_state(
             mode=PickerMode.DATE,
-            selected_dates=(today, None),
-            visible_month=first_of_month(today),
+            selected_dates=(default_date, None),
+            visible_month=first_of_month(default_date),
         )
         self.mode_changed.emit(self._state.mode)
-        self.selected_date_changed.emit(today)
+        self.selected_date_changed.emit(default_date)
         self.visible_month_changed.emit(self._state.visible_month)
         self.state_changed.emit(self._state)
 
@@ -136,6 +152,36 @@ class DatePickerStateManager(QObject):
             visible_month=visible_month if visible_month is not None else self._state.visible_month,
         )
         self._state = new_state
+
+    def _default_selection_date(self) -> QDate:
+        return self._clamp_to_bounds(QDate.currentDate())
+
+    def _ensure_within_bounds(self, date: QDate, field_name: str) -> QDate:
+        if self._min_date is not None and date < self._min_date:
+            raise InvalidDateError(f"{field_name} must be on or after the configured min_date")
+        if self._max_date is not None and date > self._max_date:
+            raise InvalidDateError(f"{field_name} must be on or before the configured max_date")
+        return date
+
+    def _clamp_to_bounds(self, date: QDate) -> QDate:
+        result = QDate(date)
+        if self._min_date is not None and result < self._min_date:
+            result = QDate(self._min_date)
+        if self._max_date is not None and result > self._max_date:
+            result = QDate(self._max_date)
+        return result
+
+    def _clamp_visible_month(self, month: QDate) -> QDate:
+        target = first_of_month(month)
+        if self._min_date is not None:
+            min_month = first_of_month(self._min_date)
+            if target < min_month:
+                return min_month
+        if self._max_date is not None:
+            max_month = first_of_month(self._max_date)
+            if target > max_month:
+                return max_month
+        return target
 
 __all__ = ["DatePickerStateManager", "DatePickerState", "PickerMode"]
 

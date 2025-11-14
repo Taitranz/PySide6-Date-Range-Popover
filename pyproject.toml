@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "valgo-date-range-popover"
+version = "0.1.0"
+description = "Reusable PyQt6 date range popover component."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Taitranz" },
+]
+keywords = ["PyQt6", "date picker", "ui", "calendar", "widget"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: User Interfaces",
+]
+dependencies = [
+    "PyQt6>=6.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/Taitranz/date-select-popover"
+Source = "https://github.com/Taitranz/date-select-popover"
+
+[tool.hatch.build.targets.wheel]
+packages = ["date_range_popover"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"date_range_popover/assets" = "date_range_popover/assets"
+"examples" = "examples"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "date_range_popover",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+

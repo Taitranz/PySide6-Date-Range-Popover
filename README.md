@@ -1,0 +1,85 @@
+# Date Range Popover
+
+I built this PyQt6 popover because I wanted a compact date and range picker I could drop into desktop tools without rewriting the same scaffolding each time. The code lives at <https://github.com/Taitranz/date-select-popover>, and anyone is free to clone it or install it locally.
+
+## What you get
+
+- `DateRangePopover` exposes top-level Qt signals (`date_selected`, `range_selected`, `cancelled`) so you can wire business logic without spelunking through widgets.
+- `DatePickerConfig` centralizes options: picker mode, sizing, initial date or range, theming, and the new `min_date`/`max_date` bounds.
+- A consistent style system driven by `ColorPalette`, `LayoutConfig`, and `StyleRegistry`, plus keyboard-friendly focus handling and track animations.
+- A runnable demo under `examples/basic_popover_demo.py` that mirrors the code shown below.
+
+## Install
+
+```bash
+# editable install while iterating
+pip install -e .
+
+# once you publish, pip can install it by name
+pip install valgo-date-range-popover
+```
+
+Everything comes from the `pyproject.toml` (PEP 621 via hatchling), so `pip`, `python -m build`, or `hatch build` all work. The repo URL is `https://github.com/Taitranz/date-select-popover`.
+
+## Run the demo
+
+```bash
+python -m examples.basic_popover_demo
+```
+
+That script opens a centered popover, prints selected dates/ranges to stdout, and shows how the signals behave. I often duplicate that module when testing different configs.
+
+## Embed it in your app
+
+```python
+from PyQt6.QtWidgets import QApplication
+from date_range_popover import DatePickerConfig, DateRangePopover, PickerMode
+
+app = QApplication([])
+config = DatePickerConfig(
+    mode=PickerMode.DATE,
+    initial_date=None,
+    min_date=None,
+    max_date=None,
+    time_step_minutes=15,
+)
+popover = DateRangePopover(config=config)
+popover.date_selected.connect(lambda date: print(date.toString("yyyy-MM-dd")))
+popover.show()
+app.exec()
+```
+
+### Signals
+
+- `date_selected(QDate)`: fires when a single date is locked in.
+- `range_selected(DateRange)`: fires once both endpoints exist.
+- `cancelled()`: fires when the user closes or cancels the popover.
+
+### Configuration highlights
+
+`DatePickerConfig` lets me keep behavior predictable:
+
+- `mode`: `PickerMode.DATE` or `PickerMode.CUSTOM_RANGE`.
+- `initial_date` / `initial_range`: seed selections on open.
+- `width` / `height`: clamp popover bounds.
+- `theme`: supply a custom `Theme`, `ColorPalette`, or `LayoutConfig`.
+- `min_date` / `max_date`: block out-of-range navigation and selection.
+- `time_step_minutes`: set the spacing for the time completer.
+
+For heavier customization, import `date_range_popover.styles.theme` and build your own palette or layout before passing the theme into the config.
+
+### Theming notes
+
+`StyleManager` pulls variants from `StyleRegistry`, so every component (calendar views, header, inputs, action buttons) calls into the same palette. Changing one palette entry gives you consistent colors, and swapping layout values adjusts spacing/geometry without touching the widgets.
+
+## Packaging checklist
+
+1. Increment the version in `pyproject.toml`.
+2. `hatch build` or `python -m build` to create wheels/sdists.
+3. `twine upload dist/*` to push to PyPI or TestPyPI.
+
+The metadata already lists the license, authorship, and dependencies, so those commands are all you need when you decide to publish.
+
+## License
+
+MIT License. See `LICENSE` for the exact terms.

@@ -50,6 +50,9 @@ class DatePickerConfig:
     initial_date: Optional[QDate] = None
     initial_range: Optional[DateRange] = None
     mode: PickerMode = PickerMode.DATE
+    min_date: Optional[QDate] = None
+    max_date: Optional[QDate] = None
+    time_step_minutes: int = 15
 
     def __post_init__(self) -> None:
         self.width = validate_dimension(
@@ -62,6 +65,12 @@ class DatePickerConfig:
             field_name="height",
             min_value=_DEFAULT_LAYOUT.window_min_height,
         )
+        self.time_step_minutes = validate_dimension(
+            self.time_step_minutes,
+            field_name="time_step_minutes",
+            min_value=1,
+            max_value=60,
+        )
         self.initial_date = validate_qdate(self.initial_date, field_name="initial_date", allow_none=True)
         candidate_range = object.__getattribute__(self, "initial_range")
         if candidate_range is not None and not isinstance(candidate_range, DateRange):
@@ -72,6 +81,23 @@ class DatePickerConfig:
         theme_value = object.__getattribute__(self, "theme")
         if not isinstance(theme_value, Theme):
             raise InvalidConfigurationError("theme must be an instance of Theme")
+        self.min_date = validate_qdate(self.min_date, field_name="min_date", allow_none=True)
+        self.max_date = validate_qdate(self.max_date, field_name="max_date", allow_none=True)
+        if self.min_date is not None and self.max_date is not None and self.min_date > self.max_date:
+            raise InvalidConfigurationError("min_date must be on or before max_date")
+        if self.initial_date is not None:
+            self._ensure_within_bounds(self.initial_date, "initial_date")
+        if self.initial_range is not None:
+            if self.initial_range.start_date is not None:
+                self._ensure_within_bounds(self.initial_range.start_date, "initial_range.start_date")
+            if self.initial_range.end_date is not None:
+                self._ensure_within_bounds(self.initial_range.end_date, "initial_range.end_date")
+
+    def _ensure_within_bounds(self, date: QDate, field_name: str) -> None:
+        if self.min_date is not None and date < self.min_date:
+            raise InvalidConfigurationError(f"{field_name} must be on or after min_date")
+        if self.max_date is not None and date > self.max_date:
+            raise InvalidConfigurationError(f"{field_name} must be on or before max_date")
 
 
 __all__ = ["DatePickerConfig", "DateRange", "PickerMode"]
