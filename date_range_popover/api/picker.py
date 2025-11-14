@@ -34,7 +34,25 @@ CLOSE_ICON_PATH = Path(__file__).resolve().parents[1] / "assets" / "cross.svg"
 
 
 class DateRangePicker(QWidget):
-    """High-level facade for constructing and interacting with the picker."""
+    """
+    High-level facade for constructing and embedding the popover.
+
+    The widget exposes a small surface area focused on things host applications
+    care about: reacting to user selections (via Qt signals), reading the
+    current selection, switching between picker modes, and resetting/cleaning up
+    resources. Everything else—layout, component wiring, state transitions—is
+    encapsulated so the embedding code stays simple.
+
+    Signals
+    -------
+    date_selected(QDate)
+        Emitted when a single date is confirmed. An invalid ``QDate`` indicates
+        that no date is currently selected.
+    range_selected(DateRange)
+        Emitted when both ends of the range are locked in.
+    cancelled()
+        Emitted when the user dismisses or cancels the popover.
+    """
 
     date_selected = pyqtSignal(QDate)
     range_selected = pyqtSignal(DateRange)
@@ -45,6 +63,16 @@ class DateRangePicker(QWidget):
         config: Optional[DatePickerConfig] = None,
         parent: QWidget | None = None,
     ) -> None:
+        """
+        Build a picker instance using the provided configuration.
+
+        The constructor clones all configuration values and initialises the
+        internal managers immediately, so callers should treat the config object
+        as immutable after passing it in.
+
+        :param config: Optional :class:`DatePickerConfig`. Defaults to ``DatePickerConfig()``.
+        :param parent: Optional widget parent for lifetime management.
+        """
         super().__init__(parent)
 
         self._config = config or DatePickerConfig()
@@ -95,30 +123,59 @@ class DateRangePicker(QWidget):
 
     # Public API --------------------------------------------------------------------
 
-    def get_selected_date(self) -> QDate:
-        """Return the currently selected date or an invalid ``QDate``."""
+    @property
+    def selected_date(self) -> QDate:
+        """
+        Currently selected single date.
+
+        The property returns an invalid ``QDate`` (``QDate()``) when there is no
+        active single-date selection. Prefer checking ``QDate.isValid`` when you
+        need to differentiate between "no selection" and a real date.
+        """
         start, _ = self._state_manager.state.selected_dates
         return start or QDate()
 
-    def get_selected_range(self) -> DateRange:
-        """Return the currently selected date range."""
+    @property
+    def selected_range(self) -> DateRange:
+        """
+        Currently selected range (may be partial).
+
+        Any missing endpoints remain ``None``. The returned object is a new
+        :class:`DateRange`, so callers can store it without worrying about
+        internal state mutation.
+        """
         start, end = self._state_manager.state.selected_dates
         return DateRange(start_date=start, end_date=end)
 
     def set_mode(self, mode: PickerMode) -> None:
-        """Switch the picker to the provided :class:`PickerMode`."""
+        """
+        Switch the picker to the provided :class:`PickerMode`.
+
+        :param mode: ``PickerMode.DATE`` or ``PickerMode.CUSTOM_RANGE``.
+        """
         LOGGER.debug("Switching picker mode via API: %s", mode.name)
         self._coordinator.switch_mode(mode)
 
     def reset(self) -> None:
-        """Reset the picker state to match the initial configuration."""
+        """
+        Reset the picker state to match the initial configuration.
+
+        This method clears animations, re-applies selection defaults, and
+        ensures the coordinator redraws UI components. It is safe to call any
+        time the host wants to discard in-progress user input.
+        """
         LOGGER.info("Resetting DateRangePicker to configuration defaults")
         self._animator.stop()
         self._state_manager.reset()
         self._initialize_state()
 
     def cleanup(self) -> None:
-        """Release long-lived objects and stop active animations."""
+        """
+        Release long-lived objects and stop active animations.
+
+        Call this during application teardown or when removing the widget from a
+        complex embedding scenario to make sure timers/animations are cleaned up.
+        """
         LOGGER.info("Cleaning up DateRangePicker resources")
         self._animator.stop()
         self._date_time_selector.cleanup()
@@ -128,6 +185,7 @@ class DateRangePicker(QWidget):
     # Internal setup ----------------------------------------------------------------
 
     def _build_ui(self) -> None:
+        """Assemble the widget tree and persist references to core components."""
         self._setup_window()
         self._build_header(self._header_strip)
 
@@ -153,6 +211,7 @@ class DateRangePicker(QWidget):
         self._configure_components()
 
     def _setup_window(self) -> None:
+        """Apply static window geometry, palette, and QWidget flags."""
         layout_config = self._layout_config
         self.setFixedWidth(layout_config.window_min_width)
         self._apply_window_height(layout_config.window_min_height)
@@ -165,6 +224,7 @@ class DateRangePicker(QWidget):
         self.setWindowFlags(Qt.WindowType.Window)
 
     def _build_header(self, header_strip: DraggableHeaderStrip) -> None:
+        """Create the draggable header that doubles as the popover title bar."""
         layout = QHBoxLayout(header_strip)
         layout.setContentsMargins(
             0,
@@ -193,6 +253,7 @@ class DateRangePicker(QWidget):
         self._close_button = close_button
 
     def _build_button_container(self) -> QWidget:
+        """Host the mode buttons, sliding indicator, inputs, and calendar."""
         palette = self._style_manager.theme.palette
         button_container = QWidget(self)
         button_container.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -211,6 +272,7 @@ class DateRangePicker(QWidget):
         return button_container
 
     def _build_content_container(self) -> QWidget:
+        """Wrap the header strip and primary controls with consistent padding."""
         container = QWidget(self)
         layout = QVBoxLayout(container)
         layout.setContentsMargins(
@@ -225,6 +287,7 @@ class DateRangePicker(QWidget):
         return container
 
     def _build_actions_section(self) -> QWidget:
+        """Create the footer that hosts Cancel / Go To actions."""
         palette = self._style_manager.theme.palette
         wrapper = QWidget(self)
         layout = QHBoxLayout(wrapper)
@@ -245,6 +308,7 @@ class DateRangePicker(QWidget):
         return wrapper
 
     def _configure_components(self) -> None:
+        """Register child widgets with their coordinators and apply styles."""
         self._coordinator.register_button_strip(self._button_strip)
         self._coordinator.register_sliding_track(self._sliding_track)
         self._coordinator.register_date_time_selector(self._date_time_selector)
@@ -261,6 +325,7 @@ class DateRangePicker(QWidget):
         )
 
     def _connect_signals(self) -> None:
+        """Wire child widget signals to both Qt signals and internal handlers."""
         connect_signal(self._close_button.clicked, self.cancelled.emit)
         connect_signal(self._cancel_button.clicked, self.cancelled.emit)
 
@@ -271,6 +336,7 @@ class DateRangePicker(QWidget):
         connect_signal(self._state_manager.mode_changed, self._on_mode_changed)
 
     def _initialize_state(self) -> None:
+        """Sync UI state with the validated configuration and state manager."""
         state = self._state_manager.state
         desired_mode = self._config.mode
         if desired_mode is not state.mode:
@@ -295,6 +361,7 @@ class DateRangePicker(QWidget):
     # Event helpers -----------------------------------------------------------------
 
     def _animate_sliding_track(self, mode: PickerMode) -> None:
+        """Animate the sliding indicator whenever the picker mode changes."""
         indicator_width = self._layout_config.date_indicator_width
         custom_width = self._layout_config.custom_range_indicator_width
         button_gap = self._layout_config.button_gap
@@ -322,9 +389,11 @@ class DateRangePicker(QWidget):
         )
 
     def _emit_range_selected(self, start: QDate, end: QDate) -> None:
+        """Emit ``range_selected`` with a defensive :class:`DateRange` copy."""
         self.range_selected.emit(DateRange(start_date=start, end_date=end))
 
     def _emit_current_selection(self) -> None:
+        """Emit the most specific signal for the current selection."""
         start, end = self._state_manager.state.selected_dates
         if end is not None:
             self.range_selected.emit(DateRange(start_date=start, end_date=end))
@@ -332,6 +401,7 @@ class DateRangePicker(QWidget):
             self.date_selected.emit(start)
 
     def _on_mode_changed(self, mode: PickerMode) -> None:
+        """Adjust window height whenever the picker switches modes."""
         layout_config = self._layout_config
         if mode is PickerMode.CUSTOM_RANGE:
             target_height = layout_config.window_min_height_custom_range
@@ -340,11 +410,13 @@ class DateRangePicker(QWidget):
         self._apply_window_height(target_height)
 
     def _apply_window_height(self, height: int) -> None:
+        """Apply a fixed window height while keeping existing width."""
         self.setMinimumHeight(height)
         self.setMaximumHeight(height)
         self.resize(self.width(), height)
 
     def _resolve_initial_input_values(self) -> tuple[QDate, QDate, QTime | None, QTime | None]:
+        """Derive initial dates/times from the configuration for widget seeding."""
         today = QDate.currentDate()
         start_date = today
         end_date = today

@@ -18,7 +18,13 @@ if TYPE_CHECKING:  # pragma: no cover
     from ..components.buttons.basic_button import BasicButton
 
 class DatePickerCoordinator(QObject):
-    """Coordinates interactions between components and managers."""
+    """
+    Internal hub that wires the state manager, style manager, and widgets.
+
+    This class is not part of the public API surface, but documenting it helps
+    advanced users understand how signals flow between components when they
+    embed custom widgets.
+    """
 
     def __init__(
         self,
@@ -117,6 +123,7 @@ class DatePickerCoordinator(QObject):
     # State change handlers ---------------------------------------------------------
 
     def _on_mode_changed(self, mode: PickerMode) -> None:
+        """React to mode switches by updating widgets and clearing pending ranges."""
         self._apply_mode_to_button_strip(mode)
         self._apply_mode_to_date_time_selector(mode)
         self._update_sliding_track(mode)
@@ -137,12 +144,14 @@ class DatePickerCoordinator(QObject):
                     self._calendar.clear_selected_range()
 
     def _on_selected_date_changed(self, date: QDate) -> None:
+        """Propagate single-date selection changes to child widgets."""
         if self._calendar is not None:
             self._calendar.set_selected_date(date)
         if self._date_time_selector is not None:
             self._date_time_selector.update_go_to_date(date)
 
     def _on_selected_range_changed(self, start: QDate, end: QDate) -> None:
+        """Propagate range selection changes to both inputs and calendar."""
         if self._date_time_selector is not None:
             self._date_time_selector.set_range(start, end)
         if (
@@ -152,10 +161,12 @@ class DatePickerCoordinator(QObject):
             self._calendar.set_selected_range(start, end)
 
     def _on_visible_month_changed(self, month: QDate) -> None:
+        """Keep the calendar widget aligned with state-manager month changes."""
         if self._calendar is not None:
             self._calendar.set_visible_month(month)
 
     def _on_date_input_valid(self, date: QDate) -> None:
+        """Handle validated input from the date-time selector."""
         if self._state_manager.state.mode is PickerMode.DATE:
             self._state_manager.select_date(date)
         else:
@@ -184,6 +195,7 @@ class DatePickerCoordinator(QObject):
     # Helpers -----------------------------------------------------------------------
 
     def _apply_mode_to_button_strip(self, mode: PickerMode) -> None:
+        """Reflect the current mode in the button strip selection."""
         if self._button_strip is None:
             return
         if mode is PickerMode.DATE:
@@ -192,6 +204,7 @@ class DatePickerCoordinator(QObject):
             self._button_strip.set_selected_button("custom_range")
 
     def _apply_mode_to_date_time_selector(self, mode: PickerMode) -> None:
+        """Ensure the date-time selector renders the correct UI for ``mode``."""
         if self._date_time_selector is None:
             return
         if mode is PickerMode.DATE:
@@ -200,6 +213,7 @@ class DatePickerCoordinator(QObject):
             self._date_time_selector.set_mode(CUSTOM_DATE_RANGE)
 
     def _update_sliding_track(self, mode: PickerMode) -> None:
+        """Update the sliding indicator position or delegate to an animator."""
         if self._sliding_track is None:
             return
         if self._sliding_track_animator is not None:

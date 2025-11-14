@@ -13,7 +13,13 @@ _HEX_RE: Final[re.Pattern[str]] = re.compile(r"^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8
 
 
 def validate_hex_color(value: object, *, field_name: str = "color") -> str:
-    """Ensure that ``value`` is a valid hex color string."""
+    """
+    Ensure that ``value`` is a valid hex color string.
+
+    :param value: Candidate color (``#RRGGBB`` or ``#RRGGBBAA``).
+    :param field_name: Friendly label used in validation errors.
+    :raises InvalidConfigurationError: If the value is not a valid hex string.
+    """
     if not isinstance(value, str):
         raise InvalidConfigurationError(f"{field_name} must be a string, got {type(value)!r}")
     normalized = value.strip()
@@ -29,7 +35,15 @@ def validate_dimension(
     min_value: int = 0,
     max_value: int | None = None,
 ) -> int:
-    """Validate UI dimension values."""
+    """
+    Validate UI dimension values.
+
+    :param value: Object expected to be an ``int``.
+    :param field_name: Friendly label used in validation errors.
+    :param min_value: Minimum inclusive value.
+    :param max_value: Maximum inclusive value (``None`` for unbounded).
+    :raises InvalidConfigurationError: If value is not an ``int`` or out of bounds.
+    """
     if not isinstance(value, int):
         raise InvalidConfigurationError(f"{field_name} must be an integer, got {type(value)!r}")
     if value < min_value:
@@ -45,7 +59,14 @@ def validate_qdate(
     field_name: str = "date",
     allow_none: bool = False,
 ) -> QDate | None:
-    """Ensure a ``QDate`` is valid (or accept ``None`` when allowed)."""
+    """
+    Ensure a ``QDate`` is valid (or accept ``None`` when allowed).
+
+    :param date: Candidate ``QDate``.
+    :param field_name: Friendly label used in validation errors.
+    :param allow_none: Whether ``None`` is an acceptable value.
+    :raises InvalidDateError: If the date is invalid or ``None`` is disallowed.
+    """
     if date is None:
         if allow_none:
             return None
@@ -62,7 +83,15 @@ def validate_date_range(
     field_name: str = "date_range",
     allow_partial: bool = True,
 ) -> tuple[QDate | None, QDate | None]:
-    """Validate that a date range is well-formed."""
+    """
+    Validate that a date range is well-formed.
+
+    :param start: Range start (may be ``None`` when ``allow_partial``).
+    :param end: Range end (may be ``None`` when ``allow_partial``).
+    :param field_name: Friendly label used in validation errors.
+    :param allow_partial: Whether missing endpoints are permitted.
+    :raises ValidationError: If both endpoints are required but missing.
+    """
     validated_start = validate_qdate(start, field_name=f"{field_name}.start", allow_none=allow_partial)
     validated_end = validate_qdate(end, field_name=f"{field_name}.end", allow_none=allow_partial)
 

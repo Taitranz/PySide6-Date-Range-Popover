@@ -14,7 +14,13 @@ ComponentType = Literal["button", "calendar", "input"]
 
 
 class StyleRegistry:
-    """Stores style presets and provides helpers for retrieving stylesheets."""
+    """
+    Stores style presets and provides helpers for retrieving styles.
+
+    The registry is intentionally lightweight—it's just a lookup table that
+    keeps per-component style tokens grouped by theme. Embedders typically do
+    not interact with it directly; :class:`StyleManager` consumes it instead.
+    """
 
     BUTTON_PRIMARY = "primary"
     BUTTON_ACCENT = "accent"
@@ -24,6 +30,7 @@ class StyleRegistry:
     INPUT_DEFAULT = "default"
 
     def __init__(self, theme: Theme | None = None) -> None:
+        """Build lookup tables using the provided :class:`Theme`."""
         self._theme = theme or DEFAULT_THEME
         palette = self._theme.palette
         layout = self._theme.layout
@@ -106,6 +113,7 @@ class StyleRegistry:
 
     @property
     def theme(self) -> Theme:
+        """Return the :class:`Theme` backing this registry."""
         return self._theme
 
     def get_stylesheet(
@@ -114,6 +122,13 @@ class StyleRegistry:
         variant: str = "default",
         **kwargs: Any,
     ) -> str:
+        """
+        Convenience wrapper that fetches a stylesheet for the given component.
+
+        :param component_type: ``"button"``, ``"calendar"``, or ``"input"``.
+        :param variant: Named style variant.
+        :raises KeyError: If the component type or variant is unknown.
+        """
         if component_type == "button":
             return self.button_stylesheet(variant=variant, **kwargs)
         if component_type == "calendar":
@@ -125,6 +140,7 @@ class StyleRegistry:
     # Button helpers -----------------------------------------------------------------
 
     def button_config(self, variant: str = BUTTON_DEFAULT) -> ButtonStyleConfig:
+        """Fetch a button style configuration."""
         try:
             return self.BUTTON_STYLES[variant]
         except KeyError as exc:
@@ -136,30 +152,35 @@ class StyleRegistry:
         variant: str = BUTTON_DEFAULT,
         vertical_padding: int,
     ) -> str:
+        """Render the stylesheet for a button variant."""
         config = self.button_config(variant)
         return config.stylesheet(vertical_padding=vertical_padding)
 
     # Calendar helpers ---------------------------------------------------------------
 
     def calendar_config(self, variant: str = CALENDAR_DEFAULT) -> CalendarStyleConfig:
+        """Fetch a calendar style configuration."""
         try:
             return self.CALENDAR_STYLES[variant]
         except KeyError as exc:
             raise KeyError(f"Unknown calendar style variant: {variant}") from exc
 
     def calendar_stylesheet(self, *, variant: str = CALENDAR_DEFAULT) -> str:
+        """Render a simple background stylesheet for calendar containers."""
         config = self.calendar_config(variant)
         return f"background-color: {config.background};"
 
     # Input helpers ------------------------------------------------------------------
 
     def input_config(self, variant: str = INPUT_DEFAULT) -> InputStyleConfig:
+        """Fetch an input style configuration."""
         try:
             return self.INPUT_STYLES[variant]
         except KeyError as exc:
             raise KeyError(f"Unknown input style variant: {variant}") from exc
 
     def input_stylesheet(self, *, variant: str = INPUT_DEFAULT) -> str:
+        """Render a minimal stylesheet for icon-enabled inputs."""
         config = self.input_config(variant)
         return (
             f"background-color: {config.background};"

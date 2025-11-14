@@ -61,6 +61,17 @@ popover.show()
 app.exec()
 ```
 
+### Reading selection state
+
+The picker now exposes `selected_date` and `selected_range` properties for
+quick inspections (instead of `get_*` methods). Each access returns a fresh
+`QDate`/`DateRange`, so you can safely cache the value:
+
+```python
+if popover.selected_range.end_date is not None:
+    print("Range locked in:", popover.selected_range)
+```
+
 ### Signals
 
 - `date_selected(QDate)`: fires when a single date is locked in.
@@ -80,9 +91,23 @@ app.exec()
 
 For heavier customization, import `date_range_popover.styles.theme` and build your own palette or layout before passing the theme into the config.
 
+### Embedding & input sanitisation
+
+- Configuration objects validate themselves in `__post_init__`, but you should still normalise user input before creating them.
+- Reuse helpers from `date_range_popover.validation` (e.g. `validate_qdate`, `validate_date_range`, `validate_dimension`) to clamp untrusted values.
+- Wrap config construction inside `try`/`except` blocks so you can surface informative errors or fall back to safe defaults.
+- The demo under `examples/basic_popover_demo.py` mirrors the README examples and is safe to copy into your own app.
+
+> Need more detail? See [`docs/embedding.md`](docs/embedding.md) for a longer end-to-end sanitisation guide.
+
 ### Theming notes
 
 `StyleManager` pulls variants from `StyleRegistry`, so every component (calendar views, header, inputs, action buttons) calls into the same palette. Changing one palette entry gives you consistent colors, and swapping layout values adjusts spacing/geometry without touching the widgets.
+
+## Upgrading
+
+- `DateRangePicker.get_selected_date()` and `.get_selected_range()` were replaced with the property-based `selected_date` / `selected_range`. Update call sites to drop the `()` suffix.
+- Docstrings and sanitisation guidance were expanded. Review the new `docs/embedding.md` file if you embed the widget inside a larger host.
 
 ## Packaging checklist
 

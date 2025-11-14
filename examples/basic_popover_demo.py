@@ -1,4 +1,11 @@
-"""Minimal PyQt application that embeds the DateRangePopover widget."""
+"""
+Minimal PyQt application that embeds :class:`DateRangePopover`.
+
+The demo intentionally mirrors the snippets in ``README.md`` so developer
+tooling and tests always execute the same setup path. It also showcases basic
+input sanitisation: the ``DatePickerConfig`` is instantiated once, validated,
+and then re-used for the lifetime of the popover.
+"""
 
 from __future__ import annotations
 
@@ -23,6 +30,7 @@ class MainWindow(QMainWindow):
     """Simple host window that centers the popover widget."""
 
     def __init__(self) -> None:
+        """Initialise the demo window and wire popover signals."""
         super().__init__()
         self.setWindowTitle("Date Range Popover Demo")
         self.setGeometry(100, 100, 800, 600)
@@ -43,9 +51,11 @@ class MainWindow(QMainWindow):
         cast(_RangeSignal, self.date_range_popover.range_selected).connect(self._on_range_selected)
 
     def _on_date_selected(self, date: QDate) -> None:
+        """Print the currently selected date whenever the signal fires."""
         print(f"Selected date: {date.toString('yyyy-MM-dd')}")
 
     def _on_range_selected(self, date_range: DateRange) -> None:
+        """Print the selected range in a friendly ``start -> end`` format."""
         if date_range.start_date is not None:
             start = date_range.start_date.toString("yyyy-MM-dd")
         else:
