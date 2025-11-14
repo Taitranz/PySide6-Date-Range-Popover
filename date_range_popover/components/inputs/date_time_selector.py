@@ -70,10 +70,12 @@ class DateTimeSelector(QWidget):
         self.setStyleSheet(f"background-color: {palette.window_background};")
 
     def mousePressEvent(self, a0: QMouseEvent | None) -> None:  # noqa: N802
-        focus_widget = QApplication.focusWidget()
-        if focus_widget is not None and focus_widget is not self:
-            focus_widget.clearFocus()
-        self.setFocus(Qt.FocusReason.MouseFocusReason)
+        focus_cleared = self._clear_focus_from_inputs(
+            preferred_focus_target=self,
+            preferred_focus_reason=Qt.FocusReason.MouseFocusReason,
+        )
+        if not focus_cleared:
+            self.setFocus(Qt.FocusReason.MouseFocusReason)
         super().mousePressEvent(a0)
 
     def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:
@@ -86,7 +88,8 @@ class DateTimeSelector(QWidget):
                 target = parent
         if a1 is not None and a1.type() is QEvent.Type.MouseButtonPress:
             if not self._object_is_within_self(a0) and self._focus_within_self():
-                self._clear_focus_from_inputs()
+                next_focus_candidate = a0 if isinstance(a0, QWidget) else None
+                self._clear_focus_from_inputs(next_focus_candidate=next_focus_candidate)
         if target is not None and a1 is not None and a1.type() in {
             QEvent.Type.FocusIn,
             QEvent.Type.FocusOut,
@@ -291,6 +294,15 @@ class DateTimeSelector(QWidget):
             popup.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         line_edit.setCompleter(completer)
 
+    def _dismiss_time_popups(self) -> None:
+        for time_input in self._time_inputs:
+            completer = time_input.input.completer()
+            if completer is None:
+                continue
+            popup = completer.popup()
+            if popup is not None and popup.isVisible():
+                popup.hide()
+
     def _generate_time_options(self, step_minutes: int) -> list[str]:
         return [
             f"{hour:02d}:{minute:02d}"
@@ -360,13 +372,41 @@ class DateTimeSelector(QWidget):
             return False
         return self._object_is_within_self(focus_widget)
 
-    def _clear_focus_from_inputs(self) -> None:
+    def _clear_focus_from_inputs(
+        self,
+        *,
+        preferred_focus_target: QWidget | None = None,
+        preferred_focus_reason: Qt.FocusReason = Qt.FocusReason.OtherFocusReason,
+        next_focus_candidate: QWidget | None = None,
+    ) -> bool:
         focus_widget = QApplication.focusWidget()
         if not isinstance(focus_widget, QWidget):
-            return
+            return False
         if not self._object_is_within_self(focus_widget):
-            return
+            return False
         focus_widget.clearFocus()
+        self._dismiss_time_popups()
+        if preferred_focus_target is not None:
+            preferred_focus_target.setFocus(preferred_focus_reason)
+            return True
+        if self._candidate_accepts_mouse_focus(next_focus_candidate):
+            return True
+        self._focus_window()
+        return True
+
+    @staticmethod
+    def _candidate_accepts_mouse_focus(candidate: QWidget | None) -> bool:
+        if candidate is None:
+            return False
+        policy = candidate.focusPolicy()
+        return bool(policy & Qt.FocusPolicy.ClickFocus)
+
+    def _focus_window(self) -> None:
+        window = self.window()
+        if isinstance(window, QWidget):
+            window.setFocus(Qt.FocusReason.OtherFocusReason)
+        else:
+            self.setFocus(Qt.FocusReason.OtherFocusReason)
 
 
 __all__ = [
