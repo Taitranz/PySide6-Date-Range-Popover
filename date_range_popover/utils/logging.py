@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Final
 
-_DEFAULT_LOGGER_NAME: Final[str] = "date_range_picker"
+_DEFAULT_LOGGER_NAME: Final[str] = "date_range_popover"
 
 
 def get_logger(name: str | None = None) -> logging.Logger:

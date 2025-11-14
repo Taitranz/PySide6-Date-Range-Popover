@@ -4,7 +4,7 @@ from typing import Callable, Protocol, cast
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
 
-from date_range_picker import DatePickerConfig, DateRange, DateRangePicker, PickerMode
+from date_range_popover import DatePickerConfig, DateRange, DateRangePopover, PickerMode
 
 
 class _DateSignal(Protocol):
@@ -34,11 +34,11 @@ class MainWindow(QMainWindow):
         layout.setSpacing(0)
 
         config = DatePickerConfig(mode=PickerMode.DATE)
-        self.date_range_picker = DateRangePicker(config=config)
-        layout.addWidget(self.date_range_picker, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.date_range_popover = DateRangePopover(config=config)
+        layout.addWidget(self.date_range_popover, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        cast(_DateSignal, self.date_range_picker.date_selected).connect(self._on_date_selected)
-        cast(_RangeSignal, self.date_range_picker.range_selected).connect(self._on_range_selected)
+        cast(_DateSignal, self.date_range_popover.date_selected).connect(self._on_date_selected)
+        cast(_RangeSignal, self.date_range_popover.range_selected).connect(self._on_range_selected)
 
     def _on_date_selected(self, date: QDate) -> None:
         print(f"Selected date: {date.toString('yyyy-MM-dd')}")
