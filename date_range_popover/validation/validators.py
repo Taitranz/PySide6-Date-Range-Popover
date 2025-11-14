@@ -18,7 +18,8 @@ def validate_hex_color(value: object, *, field_name: str = "color") -> str:
 
     :param value: Candidate color (``#RRGGBB`` or ``#RRGGBBAA``).
     :param field_name: Friendly label used in validation errors.
-    :raises InvalidConfigurationError: If the value is not a valid hex string.
+    :raises InvalidConfigurationError: If the value is not a valid hex
+        string.
     """
     if not isinstance(value, str):
         raise InvalidConfigurationError(f"{field_name} must be a string, got {type(value)!r}")
@@ -42,7 +43,8 @@ def validate_dimension(
     :param field_name: Friendly label used in validation errors.
     :param min_value: Minimum inclusive value.
     :param max_value: Maximum inclusive value (``None`` for unbounded).
-    :raises InvalidConfigurationError: If value is not an ``int`` or out of bounds.
+    :raises InvalidConfigurationError: If value is not an ``int`` or out
+        of bounds.
     """
     if not isinstance(value, int):
         raise InvalidConfigurationError(f"{field_name} must be an integer, got {type(value)!r}")
@@ -65,7 +67,8 @@ def validate_qdate(
     :param date: Candidate ``QDate``.
     :param field_name: Friendly label used in validation errors.
     :param allow_none: Whether ``None`` is an acceptable value.
-    :raises InvalidDateError: If the date is invalid or ``None`` is disallowed.
+    :raises InvalidDateError: If the date is invalid or ``None`` is
+        disallowed.
     """
     if date is None:
         if allow_none:

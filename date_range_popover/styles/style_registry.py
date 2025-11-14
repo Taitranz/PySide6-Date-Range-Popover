@@ -17,9 +17,10 @@ class StyleRegistry:
     """
     Stores style presets and provides helpers for retrieving styles.
 
-    The registry is intentionally lightweight—it's just a lookup table that
-    keeps per-component style tokens grouped by theme. Embedders typically do
-    not interact with it directly; :class:`StyleManager` consumes it instead.
+    The registry is intentionally lightweight—it's just a lookup table
+    that keeps per-component style tokens grouped by theme. Embedders
+    typically do not interact with it directly; :class:`StyleManager`
+    consumes it instead.
     """
 
     BUTTON_PRIMARY = "primary"
@@ -125,9 +126,11 @@ class StyleRegistry:
         **kwargs: Any,
     ) -> str:
         """
-        Convenience wrapper that fetches a stylesheet for the given component.
+        Convenience wrapper that fetches a stylesheet for the given
+        component.
 
-        :param component_type: ``"button"``, ``"calendar"``, or ``"input"``.
+        :param component_type: ``"button"``, ``"calendar"``, or
+            ``"input"``.
         :param variant: Named style variant.
         :raises KeyError: If the component type or variant is unknown.
         """

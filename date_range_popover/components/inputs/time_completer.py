@@ -62,7 +62,8 @@ def create_time_completer(
 
 def show_time_popup(line_edit: QLineEdit) -> None:
     """
-    Display the completer popup for ``line_edit`` and scroll to the current value.
+    Display the completer popup for ``line_edit`` and scroll to the
+    current value.
     """
 
     completer = line_edit.completer()

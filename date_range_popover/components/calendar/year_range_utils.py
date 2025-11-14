@@ -1,9 +1,10 @@
 """
-Utility helpers for computing the year ranges used by :class:`CalendarWidget`.
+Utility helpers for computing the year ranges used by
+:class:`CalendarWidget`.
 
-These helpers keep the arithmetic separate from the widget itself so the logic
-can be unit-tested in isolation and reused by other calendar surfaces if
-needed.
+These helpers keep the arithmetic separate from the widget itself so the
+logic can be unit-tested in isolation and reused by other calendar
+surfaces if needed.
 """
 
 from __future__ import annotations
@@ -15,8 +16,9 @@ def compute_year_range_start(year: int, range_size: int, *, max_year: int) -> in
     """
     Compute the first year for the range that should contain ``year``.
 
-    The return value is clamped to the valid ``[1, max_year - range_size + 1]``
-    interval so the range never overflows the supported year span.
+    The return value is clamped to the valid
+    ``[1, max_year - range_size + 1]`` interval so the range never
+    overflows the supported year span.
     """
 
     span = max(1, range_size)
@@ -35,11 +37,13 @@ def year_range_limits(
     max_year: int,
 ) -> tuple[int, int]:
     """
-    Return the minimum/maximum allowed starting year for the calendar grid.
+    Return the minimum/maximum allowed starting year for the calendar
+    grid.
 
-    The minimum bound is derived from ``min_date`` if provided, otherwise it
-    falls back to ``1``. The maximum bound always respects ``max_year`` and is
-    additionally constrained by ``max_date`` when supplied.
+    The minimum bound is derived from ``min_date`` if provided;
+    otherwise it falls back to ``1``. The maximum bound always
+    respects ``max_year`` and is additionally constrained by
+    ``max_date`` when supplied.
     """
 
     span = max(1, range_size)

@@ -12,12 +12,12 @@ class DateRangePopover(DateRangePicker):
     """
     Turn-key widget that wraps :class:`DateRangePicker` for embedding.
 
-    Importing :class:`DateRangePopover` keeps application code terse: it exposes
-    the same public API as :class:`DateRangePicker` but ships with a default
-    configuration, making it ideal for quick experiments and demos. Host
-    applications are encouraged to pass a pre-sanitised :class:`DatePickerConfig`
-    so constraints (min/max dates, layout bounds, themes) are explicit at
-    construction time.
+    Importing :class:`DateRangePopover` keeps application code terse; it
+    exposes the same public API as :class:`DateRangePicker` but ships with
+    a default configuration. That makes it handy for quick experiments and
+    demos. Pass a pre-sanitised :class:`DatePickerConfig` so constraints
+    (min/max dates, layout bounds, themes) stay explicit at construction
+    time.
     """
 
     def __init__(
@@ -28,7 +28,8 @@ class DateRangePopover(DateRangePicker):
         """
         Build the popover using the provided configuration and optional parent.
 
-        :param config: Optional :class:`DatePickerConfig`. Falls back to defaults.
+        :param config: Optional :class:`DatePickerConfig`. Falls back to
+            defaults.
         :param parent: Parent widget responsible for lifetime management.
         """
         super().__init__(config=config, parent=parent)

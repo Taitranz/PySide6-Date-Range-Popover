@@ -1,10 +1,10 @@
 """
 QSS template helpers shared by calendar widgets.
 
-Qt style sheets end up as large inline strings sprinkled throughout widgets,
-which makes it difficult to keep the visual system consistent. These helpers
-centralise the common button styles used by the month/year views so themes can
-swap palette tokens without editing every widget.
+Qt style sheets often become large inline strings sprinkled throughout
+widgets, which makes it difficult to keep the visual system consistent.
+These helpers centralise the common button styles used by the month/year
+views so themes can swap palette tokens without editing every widget.
 """
 
 from __future__ import annotations

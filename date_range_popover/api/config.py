@@ -19,11 +19,12 @@ class DateRange:
     """
     Immutable date/time container shared across the public API.
 
-    The dataclass validates its inputs eagerly so host applications can rely on
-    a fully normalized range when they receive it via the picker signals. Dates
-    are sanitised with :func:`date_range_popover.validation.validate_date_range`
-    while time values are checked for ``QTime.isValid``. None values are
-    preserved so callers can intentionally pass open ranges.
+    The dataclass validates its inputs eagerly so host applications can rely
+    on a fully normalized range when they receive it via picker signals.
+    Dates are sanitised with
+    :func:`date_range_popover.validation.validate_date_range` while time
+    values are checked for ``QTime.isValid``. ``None`` values are preserved
+    so callers can intentionally pass open ranges.
 
     :param start_date: Inclusive start of the range.
     :param end_date: Inclusive end of the range (must be >= ``start_date``).
@@ -54,7 +55,8 @@ class DateRange:
 
         :param value: ``QTime`` candidate that may be ``None``.
         :param field_name: Friendly field label for error reporting.
-        :raises InvalidConfigurationError: If the ``QTime`` is provided but invalid.
+        :raises InvalidConfigurationError: If the ``QTime`` is provided but
+            invalid.
         """
         if value is None:
             return
@@ -67,12 +69,12 @@ class DatePickerConfig:
     """
     Canonical configuration object consumed by :class:`DateRangePicker`.
 
-    The dataclass performs defensive sanitisation in ``__post_init__`` so that
-    embedding contexts can accept partially trusted input (for example, values
-    entered in another widget) and still end up with a predictable picker. All
-    numeric dimensions are clamped via :func:`validate_dimension`, all dates
-    flow through :func:`validate_qdate`, and ranges are validated by
-    :func:`validate_date_range`.
+    The dataclass performs defensive sanitisation in ``__post_init__`` so
+    embedding contexts can accept partially trusted input (for example,
+    values entered in another widget) and still end up with a predictable
+    picker. All numeric dimensions are clamped via :func:`validate_dimension`,
+    all dates flow through :func:`validate_qdate`, and ranges are validated
+    by :func:`validate_date_range`.
 
     :param width: Fixed width of the popover window (pixels).
     :param height: Fixed height of the popover window when in ``DATE`` mode.
@@ -101,11 +103,11 @@ class DatePickerConfig:
         """
         Clamp and validate configuration values.
 
-        Host applications frequently build ``DatePickerConfig`` instances from
-        external inputs (API payloads, settings files, etc.). This lifecycle hook
-        ensures all derived values are deterministic before the widget reads
-        them, which significantly reduces the amount of manual sanitisation
-        embedding contexts need to write.
+        Host applications frequently build ``DatePickerConfig`` instances
+        from external inputs (API payloads, settings files, etc.). This
+        lifecycle hook ensures all derived values are deterministic before
+        the widget reads them, which significantly reduces the amount of
+        manual sanitisation embedding contexts need to write.
         """
         self.width = validate_dimension(
             self.width,
@@ -148,7 +150,8 @@ class DatePickerConfig:
 
     def _ensure_within_bounds(self, date: QDate, field_name: str) -> None:
         """
-        Confirm that ``date`` respects the configured ``min_date``/``max_date``.
+        Confirm that ``date`` respects the configured ``min_date`` and
+        ``max_date`` values.
 
         :param date: Candidate ``QDate``.
         :param field_name: Friendly name that appears in exception messages.
