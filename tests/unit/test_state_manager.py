@@ -78,3 +78,20 @@ def test_reset_clamps_to_bounds_and_emits_signals() -> None:
     assert selected_end is None
     assert manager.state.mode is PickerMode.DATE
 
+
+def test_set_visible_month_clamps_to_bounds() -> None:
+    """Visible month selection should respect configured min/max dates."""
+    today = QDate.currentDate()
+    min_date = today.addMonths(-2)
+    max_date = today.addMonths(1)
+    manager = DatePickerStateManager(min_date=min_date, max_date=max_date)
+
+    # Attempt to set a month before the allowed window.
+    too_early = min_date.addMonths(-4)
+    manager.set_visible_month(too_early)
+    assert manager.state.visible_month == first_of_month(min_date)
+
+    # Attempt to set a month after the allowed window.
+    too_late = max_date.addMonths(4)
+    manager.set_visible_month(too_late)
+    assert manager.state.visible_month == first_of_month(max_date)

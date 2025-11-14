@@ -71,3 +71,17 @@ def test_validate_date_range_normalizes_order() -> None:
     assert start == earlier
     assert end == later
 
+
+def test_validate_date_range_preserves_partial_ranges_when_allowed() -> None:
+    """Partial ranges should round-trip when allow_partial=True."""
+    start = QDate(2024, 3, 5)
+    start_value, end_value = validate_date_range(start, None, allow_partial=True)
+    assert start_value == start
+    assert end_value is None
+
+
+def test_validate_date_range_accepts_missing_bounds_by_default() -> None:
+    """Default configuration allows open ranges (both ends missing)."""
+    start_value, end_value = validate_date_range(None, None)
+    assert start_value is None
+    assert end_value is None

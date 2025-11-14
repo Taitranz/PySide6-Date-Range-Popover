@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Callable
+
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QGridLayout,
@@ -10,6 +12,12 @@ from PyQt6.QtWidgets import (
 
 from ...exceptions import InvalidDateError
 from ...styles import constants
+from ...styles.style_templates import (
+    CircularButtonHoverStyle,
+    CircularButtonStyle,
+    circular_button_default_qss,
+    circular_button_selected_qss,
+)
 from ...styles.theme import CalendarStyleConfig, LayoutConfig
 from ...utils import connect_signal
 
@@ -107,35 +115,29 @@ class CalendarYearView(QWidget):
     def _apply_selected_style(self, button: QPushButton) -> None:
         radius = self._layout_config.calendar_day_cell_radius
         button.setStyleSheet(
-            "QPushButton {"
-            f"background-color: {self._style.today_background};"
-            f"color: {self._style.today_text_color};"
-            "border: none;"
-            f"border-radius: {radius}px;"
-            "padding: 0;"
-            "outline: none;"
-            "}"
+            circular_button_selected_qss(
+                CircularButtonStyle(
+                    background=self._style.today_background,
+                    text_color=self._style.today_text_color,
+                    radius=radius,
+                )
+            )
         )
 
     def _apply_default_style(self, button: QPushButton) -> None:
         radius = self._layout_config.calendar_day_cell_radius
         button.setStyleSheet(
-            "QPushButton {"
-            "background-color: transparent;"
-            f"color: {self._style.day_text_color};"
-            "border: none;"
-            f"border-radius: {radius}px;"
-            "padding: 0;"
-            "outline: none;"
-            "}"
-            "QPushButton:hover {"
-            f"background-color: {self._style.day_hover_background};"
-            f"color: {self._style.day_hover_text_color};"
-            "outline: none;"
-            "}"
+            circular_button_default_qss(
+                CircularButtonHoverStyle(
+                    text_color=self._style.day_text_color,
+                    hover_background=self._style.day_hover_background,
+                    hover_text_color=self._style.day_hover_text_color,
+                    radius=radius,
+                )
+            )
         )
 
-    def _make_handler(self, button: QPushButton):
+    def _make_handler(self, button: QPushButton) -> Callable[[], None]:
         def handler() -> None:
             year_value = button.property("year")
             if not isinstance(year_value, int):

@@ -53,6 +53,13 @@ pytest --maxfail=1 --disable-warnings --cov=date_range_popover
 - `pytest-qt` drives widget-level tests via the built-in `qtbot` fixture while session-scoped `QApplication` setup also lives in `tests/conftest.py`.
 - CI or local scripts can reuse the same command; coverage is optional but helpful for spotting regressions in the state manager/validation helpers.
 
+## Validation helpers & coverage
+
+- The sanitizers that guard configs and runtime input live in [`date_range_popover/validation/validators.py`](date_range_popover/validation/validators.py) and are re-exported via the public package so embedders can import them with `from date_range_popover.validation import validate_qdate`.
+- Behavioural tests for those helpers sit in [`tests/unit/test_validation.py`](tests/unit/test_validation.py); they assert the happy-path conversions as well as failure cases for missing endpoints, reordered ranges, and type mismatches.
+- Picker lifecycle tests in [`tests/unit/test_state_manager.py`](tests/unit/test_state_manager.py) exercise the same validation helpers in context so reviewers can confirm how out-of-bounds dates are clamped.
+- Run `pytest tests/unit/test_validation.py -vv` if you want a focused view on the validation helpers without spinning up the rest of the suite.
+
 ## Embed it in your app
 
 ```python
