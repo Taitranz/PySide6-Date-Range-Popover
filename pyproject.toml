@@ -7,7 +7,7 @@ name = "valgo-date-range-popover"
 version = "0.1.0"
 description = "Reusable PyQt6 date range popover component."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 license = { file = "LICENSE" }
 authors = [
     { name = "Taitranz" },
@@ -19,9 +19,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: User Interfaces",
 ]
 dependencies = [
@@ -29,8 +28,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Taitranz/date-select-popover"
-Source = "https://github.com/Taitranz/date-select-popover"
+Homepage = "https://github.com/Taitranz/pyqt6-date-range-popover"
+Source = "https://github.com/Taitranz/pyqt6-date-range-popover"
 
 [tool.hatch.build.targets.wheel]
 packages = ["date_range_popover"]

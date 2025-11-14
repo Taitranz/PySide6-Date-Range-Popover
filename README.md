@@ -1,6 +1,6 @@
 # Date Range Popover
 
-I built this PyQt6 popover because I wanted a compact date and range picker I could drop into desktop tools without rewriting the same scaffolding each time. The code lives at <https://github.com/Taitranz/date-select-popover>, and anyone is free to clone it or install it locally.
+I built this PyQt6 popover because I wanted a compact date and range picker I could drop into desktop tools without rewriting the same scaffolding each time. The code lives at <https://github.com/Taitranz/pyqt6-date-range-popover>, and anyone is free to clone it or install it locally.
 
 ## What you get
 
@@ -19,7 +19,7 @@ pip install -e .
 pip install valgo-date-range-popover
 ```
 
-Everything comes from the `pyproject.toml` (PEP 621 via hatchling), so `pip`, `python -m build`, or `hatch build` all work. The repo URL is `https://github.com/Taitranz/date-select-popover`.
+Everything comes from the `pyproject.toml` (PEP 621 via hatchling), so `pip`, `python -m build`, or `hatch build` all work. The repo URL is `https://github.com/Taitranz/pyqt6-date-range-popover`.
 
 ## Run the demo
 
@@ -63,7 +63,7 @@ app.exec()
 - `initial_date` / `initial_range`: seed selections on open.
 - `width` / `height`: clamp popover bounds.
 - `theme`: supply a custom `Theme`, `ColorPalette`, or `LayoutConfig`.
-- `min_date` / `max_date`: block out-of-range navigation and selection.
+- `min_date` / `max_date`: block out-of-range navigation and selection. If you don't pass a `max_date`, it defaults to today's date so future days stay disabled (you can still opt-in to future dates by setting a later `max_date`).
 - `time_step_minutes`: set the spacing for the time completer.
 
 For heavier customization, import `date_range_popover.styles.theme` and build your own palette or layout before passing the theme into the config.

@@ -82,8 +82,9 @@ class DatePickerConfig:
         if not isinstance(theme_value, Theme):
             raise InvalidConfigurationError("theme must be an instance of Theme")
         self.min_date = validate_qdate(self.min_date, field_name="min_date", allow_none=True)
-        self.max_date = validate_qdate(self.max_date, field_name="max_date", allow_none=True)
-        if self.min_date is not None and self.max_date is not None and self.min_date > self.max_date:
+        max_candidate = validate_qdate(self.max_date, field_name="max_date", allow_none=True)
+        self.max_date = max_candidate or QDate.currentDate()
+        if self.min_date is not None and self.min_date > self.max_date:
             raise InvalidConfigurationError("min_date must be on or before max_date")
         if self.initial_date is not None:
             self._ensure_within_bounds(self.initial_date, "initial_date")
