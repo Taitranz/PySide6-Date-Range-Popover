@@ -63,7 +63,8 @@ def test_single_date_selection_survives_full_cycle() -> None:
 
     assert manager.state.mode is PickerMode.DATE
     assert manager.state.selected_dates == (selection, None)
-    assert [entry[0] for entry in mode_spy] == [
+    captured_modes = [mode_spy[i][0] for i in range(len(mode_spy))]
+    assert captured_modes == [
         PickerMode.CUSTOM_RANGE,
         PickerMode.DATE,
     ]

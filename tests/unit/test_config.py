@@ -27,6 +27,17 @@ def test_date_range_rejects_invalid_times() -> None:
         DateRange(start_time=QTime())  # QTime() defaults to an invalid sentinel
 
 
+def test_date_range_accepts_valid_times() -> None:
+    """Valid QTime instances should round-trip without raising."""
+    start_time = QTime(9, 30)
+    end_time = QTime(11, 0)
+
+    value = DateRange(start_time=start_time, end_time=end_time)
+
+    assert value.start_time == start_time
+    assert value.end_time == end_time
+
+
 def test_config_enforces_min_dimensions() -> None:
     """Width/height/time step values must respect LayoutConfig minimums."""
     layout = LayoutConfig()
@@ -70,3 +81,24 @@ def test_config_validates_initial_selection_against_bounds() -> None:
     bad_range = DateRange(start_date=min_date.addDays(-3), end_date=max_date.addDays(1))
     with pytest.raises(InvalidConfigurationError):
         DatePickerConfig(min_date=min_date, max_date=max_date, initial_range=bad_range)
+
+
+def test_config_rejects_min_date_after_max_date() -> None:
+    """min_date must always be on or before max_date."""
+    min_date = QDate(2024, 2, 10)
+    max_date = QDate(2024, 2, 5)
+
+    with pytest.raises(InvalidConfigurationError):
+        DatePickerConfig(min_date=min_date, max_date=max_date)
+
+
+def test_config_initial_date_cannot_exceed_max_date() -> None:
+    """initial_date greater than max_date should raise immediately."""
+    min_date = QDate(2024, 3, 1)
+    max_date = QDate(2024, 3, 10)
+    with pytest.raises(InvalidConfigurationError):
+        DatePickerConfig(
+            min_date=min_date,
+            max_date=max_date,
+            initial_date=max_date.addDays(1),
+        )

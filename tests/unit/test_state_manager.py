@@ -94,3 +94,26 @@ def test_set_visible_month_clamps_to_bounds() -> None:
     too_late = max_date.addMonths(4)
     manager.set_visible_month(too_late)
     assert manager.state.visible_month == first_of_month(max_date)
+
+
+def test_min_max_date_properties_expose_configured_bounds() -> None:
+    """min_date/max_date properties should reflect the constructor inputs."""
+    min_date = QDate(2024, 4, 5)
+    max_date = QDate(2024, 5, 1)
+    manager = DatePickerStateManager(min_date=min_date, max_date=max_date)
+
+    assert manager.min_date == min_date
+    assert manager.max_date == max_date
+
+
+def test_reset_emits_mode_changed_when_mode_differs() -> None:
+    """reset should emit mode_changed when returning from CUSTOM_RANGE to DATE."""
+    manager = DatePickerStateManager()
+    manager.set_mode(PickerMode.CUSTOM_RANGE)
+    spy = QSignalSpy(manager.mode_changed)
+
+    manager.reset()
+
+    assert spy
+    assert spy[-1][0] is PickerMode.DATE
+    assert manager.state.mode is PickerMode.DATE

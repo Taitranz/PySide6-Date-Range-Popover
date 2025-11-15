@@ -97,13 +97,13 @@ def validate_date_range(
     :param allow_partial: Whether missing endpoints are permitted.
     :raises ValidationError: If both endpoints are required but missing.
     """
+    if not allow_partial and (start is None or end is None):
+        raise ValidationError(f"{field_name} requires both start and end dates")
+
     validated_start = validate_qdate(
         start, field_name=f"{field_name}.start", allow_none=allow_partial
     )
     validated_end = validate_qdate(end, field_name=f"{field_name}.end", allow_none=allow_partial)
-
-    if not allow_partial and (validated_start is None or validated_end is None):
-        raise ValidationError(f"{field_name} requires both start and end dates")
 
     if validated_start is None or validated_end is None:
         return validated_start, validated_end
