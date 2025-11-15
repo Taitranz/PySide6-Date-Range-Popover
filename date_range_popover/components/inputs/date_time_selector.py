@@ -15,13 +15,8 @@ from PySide6.QtCore import (
     Signal,
 )
 from PySide6.QtGui import QMouseEvent
-from PySide6.QtWidgets import (
-    QApplication,
-    QHBoxLayout,
-    QLineEdit,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QLineEdit, QVBoxLayout, QWidget
+from shiboken6 import Shiboken
 
 from ...styles.theme import ColorPalette
 from ...utils import connect_signal
@@ -115,6 +110,8 @@ class DateTimeSelector(QWidget):
         super().mousePressEvent(event)
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if not Shiboken.isValid(self):
+            return False
         target: InputWithIcon | None = None
         if isinstance(watched, InputWithIcon):
             target = watched
