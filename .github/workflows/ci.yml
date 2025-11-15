@@ -41,8 +41,7 @@ jobs:
         run: |
           pip install --force-reinstall \
             "PyQt6==${{ matrix.pyqt-version }}" \
-            "PyQt6-Qt6==${{ matrix.pyqt-version }}" \
-            "PyQt6-Qt6-OpenGL==${{ matrix.pyqt-version }}"
+            "PyQt6-Qt6==${{ matrix.pyqt-version }}"
 
       - name: Ruff lint
         run: ruff check .
