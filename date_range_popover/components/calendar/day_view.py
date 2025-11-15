@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 
 from ...styles import constants
 from ...styles.theme import CalendarStyleConfig, LayoutConfig
-from ...utils import connect_signal, iter_month_days
+from ...utils import connect_signal, iter_month_days, qdate_is_after, qdate_is_before
 from .day_cell import CalendarDayCell
 
 
@@ -150,8 +150,8 @@ class CalendarDayView(QWidget):
                 and day_date.year() == visible_month.year()
             )
             is_selected: bool = day_date.toJulianDay() == selected_date.toJulianDay()
-            is_disabled = (min_date is not None and day_date < min_date) or (
-                max_date is not None and day_date > max_date
+            is_disabled = (min_date is not None and qdate_is_before(day_date, min_date)) or (
+                max_date is not None and qdate_is_after(day_date, max_date)
             )
             day_julian = day_date.toJulianDay()
             is_range_start = start_julian is not None and day_julian == start_julian

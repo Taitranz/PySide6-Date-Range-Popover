@@ -6,7 +6,7 @@ from enum import Enum, auto
 from PySide6.QtCore import QDate
 
 from ..exceptions import InvalidDateError
-from ..utils import first_of_month
+from ..utils import first_of_month, qdate_is_after, qdate_is_before
 
 
 class PickerMode(Enum):
@@ -43,9 +43,9 @@ def build_initial_state(min_date: QDate | None, max_date: QDate | None) -> DateP
 def clamp_date(date: QDate, min_date: QDate | None, max_date: QDate | None) -> QDate:
     """Clamp ``date`` to the provided bounds without raising."""
     result = QDate(date)
-    if min_date is not None and result < min_date:
+    if min_date is not None and qdate_is_before(result, min_date):
         result = QDate(min_date)
-    if max_date is not None and result > max_date:
+    if max_date is not None and qdate_is_after(result, max_date):
         result = QDate(max_date)
     return result
 
@@ -58,9 +58,9 @@ def ensure_within_bounds(
     field_name: str,
 ) -> QDate:
     """Validate that ``date`` stays inside the configured bounds."""
-    if min_date is not None and date < min_date:
+    if min_date is not None and qdate_is_before(date, min_date):
         raise InvalidDateError(f"{field_name} must be on or after the configured min_date")
-    if max_date is not None and date > max_date:
+    if max_date is not None and qdate_is_after(date, max_date):
         raise InvalidDateError(f"{field_name} must be on or before the configured max_date")
     return date
 
@@ -70,11 +70,11 @@ def clamp_visible_month(month: QDate, min_date: QDate | None, max_date: QDate | 
     target = first_of_month(month)
     if min_date is not None:
         min_month = first_of_month(min_date)
-        if target < min_month:
+        if qdate_is_before(target, min_month):
             target = min_month
     if max_date is not None:
         max_month = first_of_month(max_date)
-        if target > max_month:
+        if qdate_is_after(target, max_month):
             target = max_month
     return target
 

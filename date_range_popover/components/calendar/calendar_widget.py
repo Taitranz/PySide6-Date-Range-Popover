@@ -14,7 +14,7 @@ from ...styles.style_templates import (
     mode_label_text_qss,
 )
 from ...styles.theme import CalendarStyleConfig, LayoutConfig
-from ...utils import connect_signal, first_of_month
+from ...utils import connect_signal, first_of_month, qdate_is_after, qdate_is_before
 from ...validation import validate_date_range, validate_qdate
 from .day_view import CalendarDayView
 from .month_view import CalendarMonthView
@@ -357,17 +357,17 @@ class CalendarWidget(QWidget):
         self._update_navigation_state()
 
     def _ensure_within_bounds(self, date: QDate, field_name: str) -> QDate:
-        if self._min_date is not None and date < self._min_date:
+        if self._min_date is not None and qdate_is_before(date, self._min_date):
             raise InvalidDateError(f"{field_name} must be on or after the configured min_date")
-        if self._max_date is not None and date > self._max_date:
+        if self._max_date is not None and qdate_is_after(date, self._max_date):
             raise InvalidDateError(f"{field_name} must be on or before the configured max_date")
         return date
 
     def _clamp_date(self, date: QDate) -> QDate:
         result = QDate(date)
-        if self._min_date is not None and result < self._min_date:
+        if self._min_date is not None and qdate_is_before(result, self._min_date):
             result = QDate(self._min_date)
-        if self._max_date is not None and result > self._max_date:
+        if self._max_date is not None and qdate_is_after(result, self._max_date):
             result = QDate(self._max_date)
         return result
 
@@ -375,9 +375,9 @@ class CalendarWidget(QWidget):
         target = first_of_month(date)
         min_month = self._first_allowed_month()
         max_month = self._last_allowed_month()
-        if min_month is not None and target < min_month:
+        if min_month is not None and qdate_is_before(target, min_month):
             return QDate(min_month)
-        if max_month is not None and target > max_month:
+        if max_month is not None and qdate_is_after(target, max_month):
             return QDate(max_month)
         return target
 
@@ -400,10 +400,10 @@ class CalendarWidget(QWidget):
     def _can_move_month(self, delta: int) -> bool:
         candidate = first_of_month(self._visible_month.addMonths(delta))
         min_month = self._first_allowed_month()
-        if min_month is not None and candidate < min_month:
+        if min_month is not None and qdate_is_before(candidate, min_month):
             return False
         max_month = self._last_allowed_month()
-        if max_month is not None and candidate > max_month:
+        if max_month is not None and qdate_is_after(candidate, max_month):
             return False
         return True
 

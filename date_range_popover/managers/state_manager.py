@@ -16,7 +16,7 @@ from ..core.state_logic import (
     switch_mode,
 )
 from ..exceptions import InvalidDateError
-from ..utils import get_logger
+from ..utils import get_logger, qdate_is_after
 from ..validation import validate_date_range, validate_qdate
 
 LOGGER = get_logger(__name__)
@@ -54,7 +54,7 @@ class DatePickerStateManager(QObject):
         if (
             self._min_date is not None
             and self._max_date is not None
-            and self._min_date > self._max_date
+            and qdate_is_after(self._min_date, self._max_date)
         ):
             raise InvalidDateError("min_date must be on or before max_date")
         self._state = build_initial_state(self._min_date, self._max_date)

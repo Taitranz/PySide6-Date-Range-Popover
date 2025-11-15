@@ -8,6 +8,7 @@ from typing import Final
 from PySide6.QtCore import QDate
 
 from ..exceptions import InvalidConfigurationError, InvalidDateError, ValidationError
+from ..utils import qdate_is_after
 
 _HEX_RE: Final[re.Pattern[str]] = re.compile(r"^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
 
@@ -108,7 +109,7 @@ def validate_date_range(
     if validated_start is None or validated_end is None:
         return validated_start, validated_end
 
-    if validated_start > validated_end:
+    if qdate_is_after(validated_start, validated_end):
         validated_start, validated_end = validated_end, validated_start
 
     return validated_start, validated_end

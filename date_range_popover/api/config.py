@@ -7,6 +7,7 @@ from PySide6.QtCore import QDate, QTime
 from ..exceptions import InvalidConfigurationError
 from ..managers.state_manager import PickerMode
 from ..styles.theme import LayoutConfig, Theme
+from ..utils import qdate_is_after, qdate_is_before
 from ..validation import validate_date_range, validate_dimension, validate_qdate
 
 _DEFAULT_LAYOUT = LayoutConfig()
@@ -161,7 +162,7 @@ class DatePickerConfig:
         self.min_date = validate_qdate(self.min_date, field_name="min_date", allow_none=True)
         max_candidate = validate_qdate(self.max_date, field_name="max_date", allow_none=True)
         self.max_date = max_candidate or QDate.currentDate()
-        if self.min_date is not None and self.min_date > self.max_date:
+        if self.min_date is not None and qdate_is_after(self.min_date, self.max_date):
             raise InvalidConfigurationError("min_date must be on or before max_date")
         if self.initial_date is not None:
             self._ensure_within_bounds(self.initial_date, "initial_date")
@@ -182,9 +183,9 @@ class DatePickerConfig:
         :param field_name: Friendly name that appears in exception messages.
         :raises InvalidConfigurationError: If the date is outside the bounds.
         """
-        if self.min_date is not None and date < self.min_date:
+        if self.min_date is not None and qdate_is_before(date, self.min_date):
             raise InvalidConfigurationError(f"{field_name} must be on or after min_date")
-        if self.max_date is not None and date > self.max_date:
+        if self.max_date is not None and qdate_is_after(date, self.max_date):
             raise InvalidConfigurationError(f"{field_name} must be on or before max_date")
 
 

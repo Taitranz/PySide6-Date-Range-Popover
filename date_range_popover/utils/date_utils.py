@@ -23,11 +23,28 @@ def first_of_month(date: QDate) -> QDate:
     return QDate(date.year(), date.month(), 1)
 
 
+def qdate_to_ordinal(date: QDate) -> int:
+    """Return a monotonically increasing integer representing ``date``."""
+    if not date.isValid():
+        raise InvalidDateError(f"Cannot convert invalid QDate to ordinal: {date}")
+    return date.toJulianDay()
+
+
+def qdate_is_before(left: QDate, right: QDate) -> bool:
+    """Return ``True`` when ``left`` occurs before ``right``."""
+    return qdate_to_ordinal(left) < qdate_to_ordinal(right)
+
+
+def qdate_is_after(left: QDate, right: QDate) -> bool:
+    """Return ``True`` when ``left`` occurs after ``right``."""
+    return qdate_to_ordinal(left) > qdate_to_ordinal(right)
+
+
 def normalize_range(start: QDate, end: QDate) -> tuple[QDate, QDate]:
     """Return an ordered tuple where ``start`` <= ``end``."""
     if not start.isValid() or not end.isValid():
         raise InvalidDateError("Both start and end dates must be valid QDate instances")
-    if start > end:
+    if qdate_is_after(start, end):
         start, end = end, start
     return QDate(start), QDate(end)
 
@@ -41,4 +58,12 @@ def iter_month_days(month: QDate) -> Iterator[QDate]:
         yield start_date.addDays(index)
 
 
-__all__ = ["copy_qdate", "first_of_month", "normalize_range", "iter_month_days"]
+__all__ = [
+    "copy_qdate",
+    "first_of_month",
+    "normalize_range",
+    "iter_month_days",
+    "qdate_is_before",
+    "qdate_is_after",
+    "qdate_to_ordinal",
+]
