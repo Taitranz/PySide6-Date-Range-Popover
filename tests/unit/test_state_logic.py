@@ -28,4 +28,3 @@ def test_clamp_visible_month_respects_max_bound() -> None:
     result = clamp_visible_month(requested_month, None, max_date)
 
     assert result == _first_day(max_date)
-
