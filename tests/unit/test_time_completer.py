@@ -61,6 +61,13 @@ def test_show_and_dismiss_time_popup_toggles_visibility(qapp: QApplication) -> N
     popup_widget = cast(QWidget, popup)
     assert popup_widget.isVisible()
 
+    # The popup is owned by the completer, so delete the line edit (and
+    # parent widget) before tearing down the event loop to avoid spuriously
+    # delivering events to a destroyed DateTimeSelector (the plug-in host for
+    # these helpers).
+    line_edit.deleteLater()
+    parent.deleteLater()
+
     dismiss_time_popup(line_edit)
     qapp.processEvents()
     assert not popup_widget.isVisible()
