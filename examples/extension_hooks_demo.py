@@ -41,9 +41,9 @@ class SelectionDispatcher:
 
     def bind(self, popover: DateRangePopover) -> None:
         """Wire the dispatcher to the picker signals."""
-        popover.date_selected.connect(self._handle_single)  # type: ignore[arg-type]
-        popover.range_selected.connect(self._handle_range)  # type: ignore[arg-type]
-        popover.cancelled.connect(self._handle_cancelled)  # type: ignore[arg-type]
+        popover.date_selected.connect(self._handle_single)
+        popover.range_selected.connect(self._handle_range)
+        popover.cancelled.connect(self._handle_cancelled)
 
     def register(self, observer: SelectionObserver) -> None:
         """Add a new observer at runtime."""
