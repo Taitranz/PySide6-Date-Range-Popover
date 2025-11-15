@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codecov uploads in CI with a live coverage badge in the README.
 - Additional picker mode regression tests covering multi-hop transitions.
 - Expanded invalid configuration tests for dimensions, theme payloads, and time steps.
+- Bundled `PySide6-stubs` so strict type-checking works out of the box.
 
 ### Changed
 - Migrated the entire widget stack from PyQt6 to PySide6, updating imports, signals,
