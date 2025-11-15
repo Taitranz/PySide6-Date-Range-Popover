@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Broadened property/edge-case coverage for `DatePickerConfig`, `Theme`, and core validators.
 - CI matrix now targets PyQt 6.5.x and 6.6.x while 6.7.x wheels remain unstable on linux.
 - Removed the `PyQt6-Qt6-OpenGL` reinstall step in CI because no wheels exist for the pinned PyQt6 versions.
+- CI now runs pytest inside `xvfb-run` with the Qt ``xcb`` platform plugin to avoid headless segmentation faults when widgets call ``show()``.
 
 ## [0.1.0] - 2024-06-01
 
