@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import os
 from typing import cast
 
+import pytest
 from date_range_popover.components.inputs.time_completer import (
     create_time_completer,
     dismiss_time_popup,
@@ -43,6 +45,9 @@ def test_create_time_completer_applies_palette_styles(qapp: QApplication) -> Non
 
 def test_show_and_dismiss_time_popup_toggles_visibility(qapp: QApplication) -> None:
     """The popup helper functions should toggle the completer visibility."""
+
+    if os.environ.get("QT_QPA_PLATFORM", "").lower() == "offscreen":
+        pytest.skip("Popup helpers require a platform plugin with window support")
 
     parent = QWidget()
     parent.show()
