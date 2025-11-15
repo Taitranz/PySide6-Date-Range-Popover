@@ -5,13 +5,13 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Generic, ParamSpec, Protocol, TypeAlias
 
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 P = ParamSpec("P")
 
 
 class SignalProtocol(Protocol, Generic[P]):
-    """Generic protocol describing the ``connect`` signature of PyQt signals."""
+    """Generic protocol describing the ``connect`` signature of PySide signals."""
 
     def connect(self, slot: Callable[P, None]) -> object: ...
 

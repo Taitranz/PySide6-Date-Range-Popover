@@ -6,7 +6,7 @@ import pytest
 from date_range_popover.components.inputs.time_completer import generate_time_options
 from date_range_popover.exceptions import InvalidDateError
 from date_range_popover.managers.state_manager import DatePickerStateManager
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 pytestmark = pytest.mark.usefixtures("qapp")
 
@@ -32,6 +32,7 @@ def test_select_date_accepts_leap_day_in_leap_year() -> None:
     manager.select_date(leap_day)
 
     start, end = manager.state.selected_dates
+    assert start is not None
     assert start == leap_day
     assert end is None
 
@@ -54,6 +55,8 @@ def test_select_range_normalizes_year_boundary() -> None:
     manager.select_range(end, start)  # intentionally reversed
 
     normalized_start, normalized_end = manager.state.selected_dates
+    assert normalized_start is not None
+    assert normalized_end is not None
     assert normalized_start == start
     assert normalized_end == end
 

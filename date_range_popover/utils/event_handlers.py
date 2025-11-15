@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from PyQt6.QtCore import QEvent, QObject, Qt
-from PyQt6.QtWidgets import QWidget
+from PySide6.QtCore import QEvent, QObject, Qt
+from PySide6.QtWidgets import QWidget
 
 
 class HoverEventFilter(QObject):
@@ -21,9 +21,7 @@ class HoverEventFilter(QObject):
         self._on_enter = on_enter
         self._on_leave = on_leave
 
-    def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:  # noqa: D401
-        if a1 is None:
-            return super().eventFilter(a0, a1)
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:  # noqa: D401
         if a1.type() is QEvent.Type.Enter:
             if self._on_enter is not None:
                 self._on_enter()
@@ -41,9 +39,7 @@ class FocusForwardingFilter(QObject):
         self._target = target
         self._focus_reason = focus_reason or Qt.FocusReason.MouseFocusReason
 
-    def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:  # noqa: D401
-        if a1 is None:
-            return super().eventFilter(a0, a1)
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:  # noqa: D401
         if a1.type() is QEvent.Type.MouseButtonPress:
             self._target.setFocus(self._focus_reason)
             return True
@@ -57,9 +53,7 @@ class MouseFocusFilter(QObject):
         super().__init__()
         self._focus_reason = focus_reason or Qt.FocusReason.MouseFocusReason
 
-    def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:  # noqa: D401
-        if a1 is None or a0 is None:
-            return super().eventFilter(a0, a1)
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:  # noqa: D401
         if a1.type() is QEvent.Type.MouseButtonPress and isinstance(a0, QWidget):
             a0.setFocus(self._focus_reason)
         return super().eventFilter(a0, a1)

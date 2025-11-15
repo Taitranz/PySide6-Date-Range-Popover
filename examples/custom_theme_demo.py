@@ -9,8 +9,8 @@ from __future__ import annotations
 import sys
 
 from date_range_popover.styles.theme import ColorPalette, LayoutConfig, Theme, theme_from_mapping
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QTabWidget, QVBoxLayout, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QTabWidget, QVBoxLayout, QWidget
 
 from date_range_popover import DatePickerConfig, DateRangePopover, PickerMode
 

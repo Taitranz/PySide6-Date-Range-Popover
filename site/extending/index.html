@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Reusable PyQt6 date and range picker.">
+        <meta name="description" content="Reusable PySide6 date and range picker.">
       
       
       
@@ -395,6 +395,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Selection Callbacks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-custom-dispatchers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building Custom Dispatchers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -405,6 +422,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Future Hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#design-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Rationale
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -617,6 +651,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Selection Callbacks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-custom-dispatchers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building Custom Dispatchers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -627,6 +678,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Future Hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#design-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Rationale
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -654,28 +722,51 @@
 <p>The library exposes several hooks so you can tailor the picker without forking
 the codebase.</p>
 <h2 id="custom-themes">Custom Themes<a class="headerlink" href="#custom-themes" title="Permanent link">&para;</a></h2>
-<p>Build a theme from JSON/YAML and pass it to <code>DatePickerConfig</code>:</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">date_range_popover.styles.theme</span><span class="w"> </span><span class="kn">import</span> <span class="n">theme_from_mapping</span>
-
-<span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;theme.json&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
-<span class="n">custom_theme</span> <span class="o">=</span> <span class="n">theme_from_mapping</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-
-<span class="n">config</span> <span class="o">=</span> <span class="n">DatePickerConfig</span><span class="p">(</span><span class="n">theme</span><span class="o">=</span><span class="n">custom_theme</span><span class="p">)</span>
-</code></pre></div>
-
-<p>For dynamic themes, implement the <code>ThemeProvider</code> protocol:</p>
+<p>Custom palettes/layouts let you brand the picker without touching the widget
+code. Two common approaches:</p>
+<ol>
+<li><strong>Static Python definition</strong> – great for themes embedded directly in source
+   control:</li>
+</ol>
+<p>```python
+   from date_range_popover import DatePickerConfig
+   from date_range_popover.styles.theme import ColorPalette, LayoutConfig, Theme</p>
+<p>ACCENT_THEME = Theme(
+       palette=ColorPalette(
+           window_background="#101820",
+           track_indicator_color="#f2aa4c",
+           calendar_today_background="#f2aa4c",
+       ),
+       layout=LayoutConfig(window_min_width=360, action_button_height=52),
+   )</p>
+<p>config = DatePickerConfig(theme=ACCENT_THEME)
+   ```</p>
+<ol>
+<li><strong>Data-driven themes</strong> – load palettes/layouts from JSON/YAML so they can be
+   tweaked without code changes:</li>
+</ol>
+<p>```python
+   import json
+   from date_range_popover.styles.theme import theme_from_mapping</p>
+<p>payload = json.load(open("theme.json", "r", encoding="utf-8"))
+   custom_theme = theme_from_mapping(payload)
+   config = DatePickerConfig(theme=custom_theme)
+   ```</p>
+<p>The <a href="../examples/custom_theme_demo.py"><code>examples/custom_theme_demo.py</code></a> script
+renders two themes side-by-side (accent dark + pastel light) to illustrate how
+palette/layout swaps ripple through the UI.</p>
+<p>For dynamic themes, implement the <code>ThemeProvider</code> protocol—useful when themes
+are supplied by plugins or remote endpoints:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">date_range_popover.styles.theme</span><span class="w"> </span><span class="kn">import</span> <span class="n">Theme</span><span class="p">,</span> <span class="n">ThemeProvider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">date_range_popover.styles.theme</span><span class="w"> </span><span class="kn">import</span> <span class="n">Theme</span><span class="p">,</span> <span class="n">ThemeProvider</span><span class="p">,</span> <span class="n">theme_from_mapping</span>
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">FileThemeProvider</span><span class="p">(</span><span class="n">ThemeProvider</span><span class="p">):</span>
     <span class="n">path</span><span class="p">:</span> <span class="nb">str</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">build_theme</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Theme</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">theme_from_mapping</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)))</span>
-
-<span class="n">registry</span> <span class="o">=</span> <span class="n">StyleRegistry</span><span class="p">(</span><span class="n">theme</span><span class="o">=</span><span class="n">FileThemeProvider</span><span class="p">(</span><span class="s2">&quot;dark.json&quot;</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">theme_from_mapping</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">handle</span><span class="p">))</span>
 </code></pre></div>
 
 <h2 id="style-variants">Style Variants<a class="headerlink" href="#style-variants" title="Permanent link">&para;</a></h2>
@@ -688,18 +779,37 @@ the codebase.</p>
 </code></pre></div>
 
 <h2 id="selection-callbacks">Selection Callbacks<a class="headerlink" href="#selection-callbacks" title="Permanent link">&para;</a></h2>
-<p>Qt signals remain the primary integration point, but you can also register
-Python callables that receive <code>SelectionSnapshot</code> objects:</p>
+<p>Qt signals remain the primary integration point, but you can layer additional
+observer interfaces on top of them to align with your application's plugin
+surface.</p>
+<p><code>DateRangePopover</code> exposes a <code>register_selection_callback</code> method that accepts
+callables receiving a <code>SelectionSnapshot</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">date_range_popover.types.selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">SelectionSnapshot</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">log_selection</span><span class="p">(</span><span class="n">snapshot</span><span class="p">:</span> <span class="n">SelectionSnapshot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mode:&quot;</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Range:&quot;</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">.</span><span class="n">selected_range</span><span class="p">)</span>
 
-<span class="n">picker</span><span class="o">.</span><span class="n">register_selection_callback</span><span class="p">(</span><span class="n">log_selection</span><span class="p">)</span>
+<span class="n">popover</span><span class="o">.</span><span class="n">register_selection_callback</span><span class="p">(</span><span class="n">log_selection</span><span class="p">)</span>
 </code></pre></div>
 
 <p>Callbacks fire synchronously on the Qt GUI thread, so keep handlers lightweight.
 Unregister them with <code>deregister_selection_callback</code>.</p>
+<h3 id="building-custom-dispatchers">Building Custom Dispatchers<a class="headerlink" href="#building-custom-dispatchers" title="Permanent link">&para;</a></h3>
+<p>When you need a richer observer API (e.g., to mirror existing extension hooks)
+wrap the Qt signals once and fan out updates yourself. See
+<a href="../examples/extension_hooks_demo.py"><code>examples/extension_hooks_demo.py</code></a> for a
+complete dispatcher + observer implementation:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SelectionObserver</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_single_date</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">QDate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">date_range</span><span class="p">:</span> <span class="n">DateRange</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="n">dispatcher</span> <span class="o">=</span> <span class="n">SelectionDispatcher</span><span class="p">()</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">popover</span><span class="p">)</span>          <span class="c1"># Wire Qt signals once</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ConsoleObserver</span><span class="p">())</span>  <span class="c1"># Fan-out to arbitrary callbacks</span>
+</code></pre></div>
+
+<p>This pattern keeps picker internals untouched while still presenting a
+domain-specific API to the rest of your application.</p>
 <h2 id="future-hooks">Future Hooks<a class="headerlink" href="#future-hooks" title="Permanent link">&para;</a></h2>
 <p>The architecture keeps state management Qt-free, which enables future extension
 points such as:</p>
@@ -710,6 +820,15 @@ points such as:</p>
 </ul>
 <p>File an issue if you need a specific hook; promoting it to the supported surface
 is usually easier than maintaining a fork.</p>
+<h3 id="design-rationale">Design Rationale<a class="headerlink" href="#design-rationale" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Pure state logic</strong> lives in <code>date_range_popover.core.state_logic</code>, making it
+  trivial to test or port to another UI framework.</li>
+<li><strong>Style isolation</strong> keeps palette/layout data separate from widgets so themes
+  can be swapped dynamically (see the demo linked above).</li>
+<li><strong>Signal indirection</strong> ensures you can layer the dispatcher pattern without
+  subclassing Qt widgets.</li>
+</ul>
 
 
 

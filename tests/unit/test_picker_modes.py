@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import pytest
 from date_range_popover.managers.state_manager import DatePickerStateManager, PickerMode
-from PyQt6.QtCore import QDate
-from PyQt6.QtTest import QSignalSpy
+from PySide6.QtCore import QDate
+from PySide6.QtTest import QSignalSpy
 
 pytestmark = pytest.mark.usefixtures("qapp")
+
+
+def _spy_payloads(spy: QSignalSpy) -> list[list[object]]:
+    """Return a snapshot of all signal payloads emitted by ``spy``."""
+    return [spy.at(i) for i in range(spy.count())]
 
 
 def test_mode_transitions_emit_signals_once_per_change() -> None:
@@ -19,11 +24,12 @@ def test_mode_transitions_emit_signals_once_per_change() -> None:
     manager.set_mode(PickerMode.CUSTOM_RANGE)
     manager.set_mode(PickerMode.DATE)
 
-    assert len(mode_spy) == 2
-    assert mode_spy[0][0] is PickerMode.CUSTOM_RANGE
-    assert mode_spy[1][0] is PickerMode.DATE
+    assert mode_spy.count() == 2
+    payloads = _spy_payloads(mode_spy)
+    assert payloads[0][0] is PickerMode.CUSTOM_RANGE
+    assert payloads[1][0] is PickerMode.DATE
     # state_changed fires for each transition as well
-    assert len(state_spy) >= 2
+    assert state_spy.count() >= 2
 
 
 def test_redundant_mode_assignment_is_ignored() -> None:
@@ -34,7 +40,7 @@ def test_redundant_mode_assignment_is_ignored() -> None:
     manager.set_mode(PickerMode.DATE)
     manager.set_mode(PickerMode.DATE)
 
-    assert len(spy) == 0
+    assert spy.count() == 0
 
 
 def test_range_selection_survives_mode_switches() -> None:
@@ -63,13 +69,13 @@ def test_single_date_selection_survives_full_cycle() -> None:
 
     assert manager.state.mode is PickerMode.DATE
     assert manager.state.selected_dates == (selection, None)
-    captured_modes = [mode_spy[i][0] for i in range(len(mode_spy))]
+    captured_modes = [payload[0] for payload in _spy_payloads(mode_spy)]
     assert captured_modes == [
         PickerMode.CUSTOM_RANGE,
         PickerMode.DATE,
     ]
     # Only the explicit select_date call should emit the date signal.
-    assert len(date_spy) == 1
+    assert date_spy.count() == 1
 
 
 def test_range_selection_restored_after_multi_switch() -> None:

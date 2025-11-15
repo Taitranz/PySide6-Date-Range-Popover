@@ -3,8 +3,8 @@ from __future__ import annotations
 import calendar
 from collections.abc import Iterable
 
-from PyQt6.QtCore import QDate, Qt, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import QDate, Qt, Signal
+from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
@@ -22,7 +22,7 @@ from .day_cell import CalendarDayCell
 class CalendarDayView(QWidget):
     """Displays the day grid with weekday labels."""
 
-    day_selected = pyqtSignal(QDate)
+    day_selected = Signal(QDate)
 
     def __init__(
         self,

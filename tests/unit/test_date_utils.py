@@ -10,7 +10,7 @@ from date_range_popover.utils.date_utils import (
     iter_month_days,
     normalize_range,
 )
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 
 def test_copy_qdate_returns_new_instance() -> None:

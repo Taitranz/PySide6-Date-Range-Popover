@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt6.QtCore import QDate, Qt, QTime, pyqtSignal
-from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
+from PySide6.QtCore import QDate, Qt, QTime, Signal
+from PySide6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
 
 from ..animation import AnimationStrategy, SlideAnimator
 from ..components.buttons import BasicButton, ButtonStrip
@@ -56,9 +56,9 @@ class DateRangePicker(QWidget):
         Emitted when the user dismisses or cancels the popover.
     """
 
-    date_selected = pyqtSignal(QDate)
-    range_selected = pyqtSignal(DateRange)
-    cancelled = pyqtSignal()
+    date_selected = Signal(QDate)
+    range_selected = Signal(DateRange)
+    cancelled = Signal()
 
     def __init__(
         self,

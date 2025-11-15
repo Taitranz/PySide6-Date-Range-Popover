@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import QPoint, Qt
-from PyQt6.QtGui import QMouseEvent
-from PyQt6.QtWidgets import QWidget
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtWidgets import QWidget
 
 from ...styles.theme import ColorPalette
 

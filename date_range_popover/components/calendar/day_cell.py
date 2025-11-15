@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import QDate, QEvent, QObject, Qt, pyqtSignal
-from PyQt6.QtGui import QResizeEvent
-from PyQt6.QtWidgets import QPushButton, QSizePolicy, QWidget
+from PySide6.QtCore import QDate, QEvent, QObject, Qt, Signal
+from PySide6.QtGui import QResizeEvent
+from PySide6.QtWidgets import QPushButton, QSizePolicy, QWidget
 
 from ...styles import constants
 from ...styles.theme import CalendarStyleConfig, LayoutConfig
@@ -12,7 +12,7 @@ from ...utils import connect_signal
 class CalendarDayCell(QWidget):
     """Visual representation of a day cell in the calendar grid."""
 
-    clicked = pyqtSignal(QDate)
+    clicked = Signal(QDate)
 
     def __init__(
         self,
@@ -21,7 +21,15 @@ class CalendarDayCell(QWidget):
         style: CalendarStyleConfig | None = None,
         layout: LayoutConfig | None = None,
     ) -> None:
-        super().__init__(parent)
+        try:
+            super().__init__(parent)
+        except SystemError:
+            # PySide can occasionally refuse to accept a parent while the widget tree
+            # is still being constructed (seen under stress from pytest-qt). Fall back
+            # to delayed parenting so the widget still attaches to the desired owner.
+            super().__init__()
+            if parent is not None:
+                self.setParent(parent)
         self._date = QDate()
         self._style = style
         self._layout = layout or LayoutConfig()
@@ -33,7 +41,15 @@ class CalendarDayCell(QWidget):
         self._button.setFont(constants.create_calendar_day_font())
         self._button.installEventFilter(self)
 
-        self._underline = QWidget(self._button)
+        try:
+            self._underline = QWidget(self._button)
+        except SystemError:
+            # PySide occasionally refuses to parent transient widgets directly when
+            # the parent is mid-construction (seen under pytest-qt + offscreen
+            # backends). Fall back to creating the widget first and parenting it
+            # afterwards so we still get the desired stacking order.
+            self._underline = QWidget()
+            self._underline.setParent(self._button)
         self._underline.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self._underline.hide()
         self._underline.raise_()
@@ -136,8 +152,8 @@ class CalendarDayCell(QWidget):
         self._hover_underline_color = hover_underline_color or underline_color or ""
         self._update_underline()
 
-    def resizeEvent(self, a0: QResizeEvent | None) -> None:
-        super().resizeEvent(a0)
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        super().resizeEvent(event)
         self._position_elements()
 
     def _on_clicked(self) -> None:
@@ -191,8 +207,8 @@ class CalendarDayCell(QWidget):
             "}"
         )
 
-    def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:
-        if a0 is self._button and a1 is not None:
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
+        if a0 is self._button:
             if a1.type() == QEvent.Type.Enter:
                 self._is_hovered = True
                 self._update_underline()

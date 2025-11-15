@@ -13,8 +13,8 @@ from date_range_popover.components.inputs.time_completer import (
     show_time_popup,
 )
 from date_range_popover.styles.theme import ColorPalette
-from PyQt6.QtCore import QStringListModel
-from PyQt6.QtWidgets import QApplication, QLineEdit, QWidget
+from PySide6.QtCore import QStringListModel
+from PySide6.QtWidgets import QApplication, QLineEdit, QWidget
 
 
 def test_generate_time_options_respects_step_bounds() -> None:

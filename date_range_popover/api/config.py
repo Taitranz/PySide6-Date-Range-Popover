@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from PyQt6.QtCore import QDate, QTime
+from PySide6.QtCore import QDate, QTime
 
 from ..exceptions import InvalidConfigurationError
 from ..managers.state_manager import PickerMode
@@ -35,7 +35,7 @@ class DateRange:
             invalid or if ``start_date`` is after ``end_date``.
 
     Example:
-        >>> from PyQt6.QtCore import QDate
+        >>> from PySide6.QtCore import QDate
         >>> DateRange(
         ...     start_date=QDate(2024, 1, 1),
         ...     end_date=QDate(2024, 1, 10),
@@ -102,7 +102,7 @@ class DatePickerConfig:
             bounds, ``min_date > max_date``, invalid ``Theme`` instances, etc.).
 
     Example:
-        >>> from PyQt6.QtCore import QDate
+        >>> from PySide6.QtCore import QDate
         >>> DatePickerConfig(
         ...     mode=PickerMode.CUSTOM_RANGE,
         ...     min_date=QDate(2023, 1, 1),

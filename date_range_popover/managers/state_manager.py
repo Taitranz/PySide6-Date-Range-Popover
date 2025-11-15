@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import cast
 
-from PyQt6.QtCore import QDate, QObject, pyqtSignal
+from PySide6.QtCore import QDate, QObject, Signal
 
 from ..core.state_logic import (
     DatePickerState,
@@ -34,11 +34,11 @@ class DatePickerStateManager(QObject):
     instead—but documenting it clarifies extension points for advanced users.
     """
 
-    mode_changed = pyqtSignal(PickerMode)
-    selected_date_changed = pyqtSignal(QDate)
-    selected_range_changed = pyqtSignal(QDate, QDate)
-    visible_month_changed = pyqtSignal(QDate)
-    state_changed = pyqtSignal(DatePickerState)
+    mode_changed = Signal(PickerMode)
+    selected_date_changed = Signal(QDate)
+    selected_range_changed = Signal(QDate, QDate)
+    visible_month_changed = Signal(QDate)
+    state_changed = Signal(DatePickerState)
 
     def __init__(self, *, min_date: QDate | None = None, max_date: QDate | None = None) -> None:
         """
@@ -113,8 +113,9 @@ class DatePickerStateManager(QObject):
         )
         LOGGER.debug("Selecting date: %s", validated.toString("yyyy-MM-dd"))
         current_start, current_end = self._state.selected_dates
-        if current_start == validated and current_end is None:
-            return
+        if current_start is not None and current_end is None:
+            if current_start.daysTo(validated) == 0:
+                return
         self._state = apply_single_date(self._state, validated)
         self.selected_date_changed.emit(validated)
         self.visible_month_changed.emit(self._state.visible_month)

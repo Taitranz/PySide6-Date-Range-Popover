@@ -1,5 +1,5 @@
 site_name: Date Range Popover
-site_description: "Reusable PyQt6 date and range picker."
+site_description: "Reusable PySide6 date and range picker."
 repo_url: https://github.com/Taitranz/pyqt6-date-range-popover
 docs_dir: docs
 

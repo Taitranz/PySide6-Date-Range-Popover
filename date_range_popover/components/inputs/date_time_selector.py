@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import Final, Literal
+from typing import Final, Literal, cast
 
-from PyQt6.QtCore import (
+from PySide6.QtCore import (
     QCoreApplication,
     QDate,
     QEvent,
@@ -12,10 +12,10 @@ from PyQt6.QtCore import (
     QStringListModel,
     Qt,
     QTime,
-    pyqtSignal,
+    Signal,
 )
-from PyQt6.QtGui import QMouseEvent
-from PyQt6.QtWidgets import (
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
     QLineEdit,
@@ -43,7 +43,7 @@ CLOCK_ICON_PATH: Final[Path] = Path(__file__).resolve().parents[2] / "assets" / 
 class DateTimeSelector(QWidget):
     """Widget hosting date/time inputs with selectable layout."""
 
-    date_input_valid = pyqtSignal(QDate)
+    date_input_valid = Signal(QDate)
 
     def __init__(
         self,
@@ -105,16 +105,16 @@ class DateTimeSelector(QWidget):
         self._palette = palette
         self.setStyleSheet(f"background-color: {palette.window_background};")
 
-    def mousePressEvent(self, a0: QMouseEvent | None) -> None:  # noqa: N802
+    def mousePressEvent(self, event: QMouseEvent) -> None:  # noqa: N802
         focus_cleared = self._clear_focus_from_inputs(
             preferred_focus_target=self,
             preferred_focus_reason=Qt.FocusReason.MouseFocusReason,
         )
         if not focus_cleared:
             self.setFocus(Qt.FocusReason.MouseFocusReason)
-        super().mousePressEvent(a0)
+        super().mousePressEvent(event)
 
-    def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
         target: InputWithIcon | None = None
         if isinstance(a0, InputWithIcon):
             target = a0
@@ -122,19 +122,11 @@ class DateTimeSelector(QWidget):
             parent = a0.parentWidget()
             if isinstance(parent, InputWithIcon):
                 target = parent
-        if a1 is not None and a1.type() is QEvent.Type.MouseButtonPress:
+        if a1.type() is QEvent.Type.MouseButtonPress:
             if not self._object_is_within_self(a0) and self._focus_within_self():
                 next_focus_candidate = a0 if isinstance(a0, QWidget) else None
                 self._clear_focus_from_inputs(next_focus_candidate=next_focus_candidate)
-        if (
-            target is not None
-            and a1 is not None
-            and a1.type()
-            in {
-                QEvent.Type.FocusIn,
-                QEvent.Type.FocusOut,
-            }
-        ):
+        if target is not None and a1.type() in {QEvent.Type.FocusIn, QEvent.Type.FocusOut}:
             if a1.type() is QEvent.Type.FocusIn:
                 if (
                     self._previously_focused_input is not None
@@ -204,9 +196,7 @@ class DateTimeSelector(QWidget):
 
         while self._layout.count():
             item = self._layout.takeAt(0)
-            if item is None:
-                continue
-            widget = item.widget()
+            widget = cast(QWidget | None, item.widget())
             if widget is not None:
                 widget.deleteLater()
 
@@ -392,8 +382,8 @@ class DateTimeSelector(QWidget):
         return bool(policy & Qt.FocusPolicy.ClickFocus)
 
     def _focus_window(self) -> None:
-        window = self.window()
-        if isinstance(window, QWidget):
+        window = cast(QWidget | None, self.window())
+        if window is not None:
             window.setFocus(Qt.FocusReason.OtherFocusReason)
         else:
             self.setFocus(Qt.FocusReason.OtherFocusReason)

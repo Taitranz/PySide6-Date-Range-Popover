@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 from date_range_popover.api.config import DatePickerConfig, DateRange
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 # Force headless Qt rendering in CI and local terminals that lack a display server.
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")

@@ -7,7 +7,7 @@ from typing import Any, cast
 from date_range_popover.api.config import DatePickerConfig, DateRange
 from date_range_popover.api.picker import DateRangePicker
 from date_range_popover.managers.state_manager import PickerMode
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 from pytestqt.qtbot import QtBot
 
 
@@ -35,6 +35,8 @@ def test_picker_applies_initial_range_and_mode(qtbot: QtBot) -> None:
     qtbot.addWidget(picker)
 
     selected = picker.selected_range
+    assert selected.start_date is not None
+    assert selected.end_date is not None
     assert selected.start_date == start
     assert selected.end_date == end
     assert cast(Any, picker)._state_manager.state.mode is PickerMode.CUSTOM_RANGE

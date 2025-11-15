@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import QEvent, QObject, Qt, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import QEvent, QObject, Qt, Signal
+from PySide6.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QSizePolicy,
@@ -16,8 +16,8 @@ from ...utils import connect_signal
 class ButtonStrip(QWidget):
     """Displays Date and Custom Range buttons."""
 
-    date_selected = pyqtSignal()
-    custom_range_selected = pyqtSignal()
+    date_selected = Signal()
+    custom_range_selected = Signal()
 
     def __init__(
         self, parent: QWidget | None = None, *, layout_config: LayoutConfig | None = None
@@ -73,8 +73,8 @@ class ButtonStrip(QWidget):
 
         self.apply_palette(ColorPalette())
 
-    def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:
-        if a0 in {self.date_button, self.custom_range_button} and a1 is not None:
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
+        if a0 in {self.date_button, self.custom_range_button}:
             target_name = "date" if a0 is self.date_button else "custom_range"
             if a1.type() == QEvent.Type.Enter:
                 if self._hovered_button != target_name:

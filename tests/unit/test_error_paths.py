@@ -11,7 +11,7 @@ from date_range_popover.exceptions import (
 )
 from date_range_popover.managers.state_manager import DatePickerStateManager
 from date_range_popover.styles.theme import Theme, theme_from_mapping
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 
 def test_state_manager_raises_invalid_date_error_for_inverted_bounds() -> None:

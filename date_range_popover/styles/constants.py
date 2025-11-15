@@ -1,6 +1,6 @@
 """Non-style constants for the date range picker widgets."""
 
-from PyQt6.QtGui import QFont
+from PySide6.QtGui import QFont
 
 ACTION_BUTTON_VERTICAL_PADDING = 12
 

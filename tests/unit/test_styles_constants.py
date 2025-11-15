@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from date_range_popover.styles import constants
-from PyQt6.QtGui import QFont
+from PySide6.QtGui import QFont
 
 
 def test_create_label_font_uses_expected_weight_and_spacing() -> None:

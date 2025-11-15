@@ -7,7 +7,7 @@ from date_range_popover.api.config import DatePickerConfig, DateRange
 from date_range_popover.exceptions import InvalidConfigurationError
 from date_range_popover.managers.state_manager import PickerMode
 from date_range_popover.styles.theme import LayoutConfig
-from PyQt6.QtCore import QDate, QTime
+from PySide6.QtCore import QDate, QTime
 
 
 def test_date_range_orders_dates() -> None:
@@ -17,6 +17,8 @@ def test_date_range_orders_dates() -> None:
 
     value = DateRange(start_date=later, end_date=earlier)
 
+    assert value.start_date is not None
+    assert value.end_date is not None
     assert value.start_date == earlier
     assert value.end_date == later
 
@@ -34,6 +36,8 @@ def test_date_range_accepts_valid_times() -> None:
 
     value = DateRange(start_time=start_time, end_time=end_time)
 
+    assert value.start_time is not None
+    assert value.end_time is not None
     assert value.start_time == start_time
     assert value.end_time == end_time
 
@@ -54,6 +58,7 @@ def test_config_defaults_max_date_to_today() -> None:
     """When no max_date is supplied the config should clamp to today."""
     today = QDate.currentDate()
     config = DatePickerConfig()
+    assert config.max_date is not None
     assert config.max_date == today
 
 

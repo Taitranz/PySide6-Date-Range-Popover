@@ -7,7 +7,7 @@ from date_range_popover.components.calendar.year_range_utils import (
     compute_year_range_start,
     year_range_limits,
 )
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 
 def test_compute_year_range_start_aligns_to_span() -> None:

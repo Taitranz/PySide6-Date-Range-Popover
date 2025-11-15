@@ -3,10 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Final
 
-from PyQt6.QtCore import QByteArray, Qt
-from PyQt6.QtGui import QIcon, QPainter, QPixmap
-from PyQt6.QtSvg import QSvgRenderer
-from PyQt6.QtSvgWidgets import QSvgWidget
+from PySide6.QtCore import QByteArray, Qt
+from PySide6.QtGui import QIcon, QPainter, QPixmap
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtSvgWidgets import QSvgWidget
 
 _SVG_COLOR_PLACEHOLDER: Final[str] = "__SVG_COLOR__"
 

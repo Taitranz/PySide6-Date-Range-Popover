@@ -5,10 +5,10 @@ from pathlib import Path
 from re import Pattern
 from typing import Final
 
-from PyQt6.QtCore import QEvent, QObject, Qt
-from PyQt6.QtGui import QEnterEvent
-from PyQt6.QtSvgWidgets import QSvgWidget
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QSizePolicy, QWidget
+from PySide6.QtCore import QEvent, QObject, Qt
+from PySide6.QtGui import QEnterEvent
+from PySide6.QtSvgWidgets import QSvgWidget
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QSizePolicy, QWidget
 
 from ...styles.theme import InputStyleConfig
 from ...utils import connect_signal
@@ -103,24 +103,24 @@ class InputWithIcon(QWidget):
         self.apply_style(self._style)
         self._initialize_validation_state()
 
-    def enterEvent(self, event: QEnterEvent | None) -> None:
+    def enterEvent(self, event: QEnterEvent) -> None:
         self._is_hovered = True
         self._update_border_style()
         self._update_icon_color()
         super().enterEvent(event)
 
-    def leaveEvent(self, a0: QEvent | None) -> None:
+    def leaveEvent(self, event: QEvent) -> None:
         self._is_hovered = False
         self._update_border_style()
         self._update_icon_color()
-        super().leaveEvent(a0)
+        super().leaveEvent(event)
 
-    def eventFilter(self, a0: QObject | None, a1: QEvent | None) -> bool:
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
         if a0 in {self.icon_placeholder, self._icon_widget}:
-            if a1 is not None and a1.type() is QEvent.Type.MouseButtonPress:
+            if a1.type() is QEvent.Type.MouseButtonPress:
                 self.input.setFocus(Qt.FocusReason.MouseFocusReason)
                 return True
-        if a0 in {self, self.input} and a1 is not None:
+        if a0 in {self, self.input}:
             if a1.type() is QEvent.Type.FocusIn:
                 self._was_previously_focused = False
                 self._update_border_style()

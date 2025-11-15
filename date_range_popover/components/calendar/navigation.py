@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt6.QtCore import QSize, Qt, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QSizePolicy,
@@ -23,9 +23,9 @@ NAV_ICON_SIZE = 28
 class CalendarNavigation(QWidget):
     """Header navigation for the calendar views."""
 
-    previous_clicked = pyqtSignal()
-    next_clicked = pyqtSignal()
-    header_clicked = pyqtSignal()
+    previous_clicked = Signal()
+    next_clicked = Signal()
+    header_clicked = Signal()
 
     def __init__(
         self,

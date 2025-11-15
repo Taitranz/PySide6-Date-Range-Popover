@@ -8,7 +8,7 @@ maintainers (or consumers) understand why things look the way they do.
 
 - **Decision:** Keep all selection logic in `date_range_popover.core.state_logic`
   and drive it via `DatePickerStateManager`.
-- **Why:** PyQt widgets are difficult to test in isolation. Separating state
+- **Why:** PySide widgets are difficult to test in isolation. Separating state
   transitions into a pure module enables deterministic unit tests and clears the
   path for future non-Qt frontends.
 - **Trade-offs:** Slightly more indirection inside coordinators, but it pays off

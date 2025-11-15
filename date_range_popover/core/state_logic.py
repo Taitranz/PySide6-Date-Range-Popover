@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from enum import Enum, auto
 
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 from ..exceptions import InvalidDateError
 from ..utils import first_of_month

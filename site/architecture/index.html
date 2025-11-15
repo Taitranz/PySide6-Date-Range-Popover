@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Reusable PyQt6 date and range picker.">
+        <meta name="description" content="Reusable PySide6 date and range picker.">
       
       
       
@@ -355,6 +355,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#performance-characteristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Characteristics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#signals-threading" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -653,6 +664,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#performance-characteristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Characteristics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#signals-threading" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -716,7 +738,7 @@ can be tested and reused independent of the GUI layer.</p>
   and validation helpers. These modules never import Qt widgets and can be unit
   tested in headless environments.</li>
 <li><strong>GUI Modules</strong>: Components under <code>date_range_popover.components.*</code>,
-  animators, and the popover widget. They depend on PyQt6 for rendering.</li>
+  animators, and the popover widget. They depend on PySide6 for rendering.</li>
 </ul>
 <p>Keeping logic isolated enables property-based tests (see
 <code>tests/properties/test_invariants.py</code>) and makes it feasible to drive a future
@@ -736,6 +758,23 @@ or layout does not require touching widget code.</p>
 <p>Switching modes triggers a sliding indicator animation (<code>SlideAnimator</code>) and
 resizes the popover to pre-defined heights, but the state manager retains the
 underlying selection so users can bounce between modes without losing progress.</p>
+<h2 id="performance-characteristics">Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>State transitions</strong> (selecting dates, switching modes, clamping bounds) are
+  <code>O(1)</code> operations because the state manager stores at most two <code>QDate</code> objects
+  and a single visible-month reference.</li>
+<li><strong>Calendar rendering</strong> is <code>O(#visible-days)</code>—roughly 42 cells for standard
+  monthly grids—so painting cost stays constant regardless of min/max ranges.</li>
+<li><strong>Animations</strong> run on a lightweight timer that updates only the sliding track’s
+  geometry; no expensive scene graphs or off-screen buffers are used.</li>
+<li><strong>Memory footprint</strong> stays bounded: the state manager holds <code>&lt;= 2</code> <code>QDate</code>
+  objects, and themes are immutable dataclasses that can be reused across
+  multiple widget instances.</li>
+<li><strong>I/O</strong> is limited to Qt event handling; there are no background threads or
+  network calls.</li>
+<li><strong>Large ranges</strong> (multi-year) remain responsive because navigation only clamps
+  the month pointer and never materialises entire date ranges.</li>
+</ul>
 <h2 id="signals-threading">Signals &amp; Threading<a class="headerlink" href="#signals-threading" title="Permanent link">&para;</a></h2>
 <p>All signals fire on the Qt GUI thread. The library does not spawn background
 threads, so embedder code can safely mutate UI state inside signal handlers as

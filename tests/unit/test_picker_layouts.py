@@ -15,7 +15,7 @@ from date_range_popover.components.calendar import CalendarWidget
 from date_range_popover.components.inputs import DateTimeSelector
 from date_range_popover.components.layout import DraggableHeaderStrip, SlidingTrackIndicator
 from date_range_popover.styles.style_registry import StyleRegistry
-from PyQt6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QApplication, QWidget
 
 
 def _build_common_components(

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Reusable PyQt6 date and range picker.">
+        <meta name="description" content="Reusable PySide6 date and range picker.">
       
       
       
@@ -704,7 +704,7 @@ explains how to safely bridge that external input into the picker.</p>
 <p>Always convert raw inputs into concrete Python types before building a
 <code>DatePickerConfig</code>. For example, parse ISO date strings into <code>QDate</code>
 objects and clamp integers to sensible ranges.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">PyQt6.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">QDate</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">QDate</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_iso_date</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QDate</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>

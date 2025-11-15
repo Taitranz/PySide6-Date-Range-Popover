@@ -24,7 +24,7 @@ User input -> Coordinator -> State manager -> Signals -> Widgets
   and validation helpers. These modules never import Qt widgets and can be unit
   tested in headless environments.
 - **GUI Modules**: Components under `date_range_popover.components.*`,
-  animators, and the popover widget. They depend on PyQt6 for rendering.
+  animators, and the popover widget. They depend on PySide6 for rendering.
 
 Keeping logic isolated enables property-based tests (see
 `tests/properties/test_invariants.py`) and makes it feasible to drive a future

@@ -3,8 +3,8 @@ from __future__ import annotations
 import calendar
 from collections.abc import Callable
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
     QGridLayout,
     QPushButton,
     QSizePolicy,
@@ -26,7 +26,7 @@ from ...utils import connect_signal
 class CalendarMonthView(QWidget):
     """Month selection grid."""
 
-    month_selected = pyqtSignal(int)
+    month_selected = Signal(int)
 
     def __init__(
         self,

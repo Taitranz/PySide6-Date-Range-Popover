@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/Taitranz/pyqt6-date-range-popover/branch/main/graph/badge.svg)](https://codecov.io/gh/Taitranz/pyqt6-date-range-popover)
 ![Python](https://img.shields.io/badge/python-3.10--3.13-blue)
 
-I built this PyQt6 popover because I wanted a compact date and range picker I could drop into desktop tools without rewriting the same scaffolding each time.
+I built this PySide6 popover because I wanted a compact date and range picker I could drop into desktop tools without rewriting the same scaffolding each time.
 
 ## Project Status
 
@@ -75,7 +75,7 @@ pytest --maxfail=1 --disable-warnings --cov=date_range_popover --cov-report=term
 ## Embed it in your app
 
 ```python
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from date_range_popover import DatePickerConfig, DateRangePopover, PickerMode
 
 app = QApplication([])

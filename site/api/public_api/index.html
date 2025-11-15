@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Reusable PyQt6 date and range picker.">
+        <meta name="description" content="Reusable PySide6 date and range picker.">
       
       
       
@@ -484,6 +484,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#versioned-behavior-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versioned Behavior Guarantees
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#daterangepopover-daterangepicker" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -631,6 +642,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#versioned-behavior-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versioned Behavior Guarantees
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#daterangepopover-daterangepicker" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -730,6 +752,27 @@ package reaches <code>v1.0.0</code>.</p>
   internal helpers.</li>
 <li>All guarantees apply to releases <code>&gt;= 1.0.0</code>. Pre-release builds may change
   without deprecation.</li>
+<li>Deprecation timelines and expectations are documented in
+  <a href="docs/api/deprecation_policy.md"><code>docs/api/deprecation_policy.md</code></a>.</li>
+</ul>
+<h2 id="versioned-behavior-guarantees">Versioned Behavior Guarantees<a class="headerlink" href="#versioned-behavior-guarantees" title="Permanent link">&para;</a></h2>
+<p>The following behaviors are contractually guaranteed beginning with <code>v0.1.0</code> and
+apply to all future releases unless a formal deprecation has been announced.</p>
+<ul>
+<li><code>selected_range</code> is always either <code>None</code> or a normalized <code>DateRange</code> whose
+  <code>start_date &lt;= end_date</code>.</li>
+<li><code>DatePickerStateManager</code> clamps every selection attempt to <code>[min_date, max_date]</code>
+  and raises <code>InvalidDateError</code> when the bounds are violated.</li>
+<li><code>DatePickerConfig</code> replaces a missing <code>max_date</code> with <code>QDate.currentDate()</code>,
+  ensuring future dates remain disabled by default.</li>
+<li><code>DateRangePopover</code> never mutates <code>DatePickerConfig</code> instances passed to it;
+  treat configs as immutable snapshots.</li>
+<li>All Qt signals (<code>date_selected</code>, <code>range_selected</code>, <code>cancelled</code>) fire on the UI
+  thread and emit defensive copies of <code>QDate</code>/<code>DateRange</code>.</li>
+<li>Mode transitions are idempotent; reassigning the active mode to its current value
+  does not emit duplicate signals.</li>
+<li>Theme validation rejects invalid hex codes and zero/negative dimensions before any
+  widgets are instantiated.</li>
 </ul>
 <h2 id="daterangepopover-daterangepicker"><code>DateRangePopover</code> / <code>DateRangePicker</code><a class="headerlink" href="#daterangepopover-daterangepicker" title="Permanent link">&para;</a></h2>
 <ul>
@@ -793,6 +836,8 @@ package reaches <code>v1.0.0</code>.</p>
   constructor; treat configs as immutable.</li>
 <li>The library does not spawn threads; all callbacks and signals fire on the Qt
   GUI thread.</li>
+<li>Deprecation notices remain in place for at least two minor releases; see the
+  dedicated deprecation policy for migration expectations.</li>
 </ul>
 <h2 id="non-guaranteed-internal-modules">Non-Guaranteed / Internal Modules<a class="headerlink" href="#non-guaranteed-internal-modules" title="Permanent link">&para;</a></h2>
 <p>The following areas are internal and subject to change between releases:</p>

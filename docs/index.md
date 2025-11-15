@@ -1,6 +1,6 @@
 # Date Range Popover
 
-`date_range_popover` packages a production-ready PyQt6 date & range picker that
+`date_range_popover` packages a production-ready PySide6 date & range picker that
 drops cleanly into data-entry tools and internal desktop apps.
 
 ## Quick Start
@@ -13,7 +13,7 @@ python -m examples.basic_popover_demo
 To embed the widget in your application:
 
 ```python
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from date_range_popover import DatePickerConfig, DateRangePopover, PickerMode
 
 app = QApplication([])
@@ -36,7 +36,7 @@ app.exec()
 ## Support Matrix
 
 - Python 3.10 – 3.13
-- PyQt6 6.5 – 6.7
+- PySide6 6.5 – 6.7
 - Linux, macOS, and Windows targets (Qt handles windowing differences).
 
 Report issues or start discussions on

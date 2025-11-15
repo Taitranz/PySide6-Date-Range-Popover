@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol, runtime_checkable
 
-from PyQt6.QtCore import QObject, QTimer
+from PySide6.QtCore import QObject, QTimer
 
 from ..styles.constants import ANIMATION_DURATION_MS, ANIMATION_FRAME_MS
 from ..utils import connect_signal

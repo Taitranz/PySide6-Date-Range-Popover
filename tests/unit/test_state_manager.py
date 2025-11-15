@@ -5,10 +5,15 @@ from __future__ import annotations
 import pytest
 from date_range_popover.managers.state_manager import DatePickerStateManager, PickerMode
 from date_range_popover.utils import first_of_month
-from PyQt6.QtCore import QDate
-from PyQt6.QtTest import QSignalSpy
+from PySide6.QtCore import QDate
+from PySide6.QtTest import QSignalSpy
 
 pytestmark = pytest.mark.usefixtures("qapp")
+
+
+def _spy_payloads(spy: QSignalSpy) -> list[list[object]]:
+    """Return a snapshot of every signal emission captured by ``spy``."""
+    return [spy.at(i) for i in range(spy.count())]
 
 
 def test_select_date_updates_state_and_emits_signal() -> None:
@@ -19,8 +24,9 @@ def test_select_date_updates_state_and_emits_signal() -> None:
 
     manager.select_date(target)
 
-    assert len(spy) == 1
-    assert spy[-1][0] == target
+    assert spy.count() == 1
+    payloads = _spy_payloads(spy)
+    assert payloads[-1][0] == target
     assert manager.state.selected_dates == (target, None)
     assert manager.state.visible_month == first_of_month(target)
 
@@ -34,8 +40,8 @@ def test_select_range_emits_correct_bounds() -> None:
 
     manager.select_range(end, start)  # intentionally reversed
 
-    assert len(spy) == 1
-    normalized_start, normalized_end = spy[-1]
+    assert spy.count() == 1
+    normalized_start, normalized_end = _spy_payloads(spy)[-1]
     assert normalized_start == start
     assert normalized_end == end
     assert manager.state.selected_dates == (start, end)
@@ -49,12 +55,12 @@ def test_set_mode_emits_only_on_change() -> None:
 
     manager.set_mode(PickerMode.CUSTOM_RANGE)
 
-    assert len(spy) == 1
-    assert spy[-1][0] is PickerMode.CUSTOM_RANGE
+    assert spy.count() == 1
+    assert _spy_payloads(spy)[-1][0] is PickerMode.CUSTOM_RANGE
 
     # Re-sending the same mode should be a no-op.
     manager.set_mode(PickerMode.CUSTOM_RANGE)
-    assert len(spy) == 1
+    assert spy.count() == 1
     assert manager.state.mode is PickerMode.CUSTOM_RANGE
 
 
@@ -71,7 +77,7 @@ def test_reset_clamps_to_bounds_and_emits_signals() -> None:
 
     manager.reset()
 
-    assert len(spy) == 1
+    assert spy.count() == 1
     selected_start, selected_end = manager.state.selected_dates
     assert selected_start == max_date  # default date is clamped to max bound
     assert selected_end is None
@@ -114,6 +120,6 @@ def test_reset_emits_mode_changed_when_mode_differs() -> None:
 
     manager.reset()
 
-    assert spy
-    assert spy[-1][0] is PickerMode.DATE
+    assert spy.count() > 0
+    assert _spy_payloads(spy)[-1][0] is PickerMode.DATE
     assert manager.state.mode is PickerMode.DATE

@@ -11,8 +11,8 @@ import sys
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from PyQt6.QtCore import QDate, Qt
-from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QTextEdit, QVBoxLayout, QWidget
+from PySide6.QtCore import QDate, Qt
+from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QTextEdit, QVBoxLayout, QWidget
 
 from date_range_popover import DatePickerConfig, DateRange, DateRangePopover, PickerMode
 

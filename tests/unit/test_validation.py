@@ -14,7 +14,7 @@ from date_range_popover.validation import (
     validate_hex_color,
     validate_qdate,
 )
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 
 def test_validate_hex_color_accepts_valid_values() -> None:
@@ -71,6 +71,8 @@ def test_validate_date_range_normalizes_order() -> None:
     later = QDate(2024, 1, 10)
     earlier = QDate(2024, 1, 1)
     start, end = validate_date_range(later, earlier, allow_partial=False)
+    assert start is not None
+    assert end is not None
     assert start == earlier
     assert end == later
 
@@ -79,6 +81,7 @@ def test_validate_date_range_preserves_partial_ranges_when_allowed() -> None:
     """Partial ranges should round-trip when allow_partial=True."""
     start = QDate(2024, 3, 5)
     start_value, end_value = validate_date_range(start, None, allow_partial=True)
+    assert start_value is not None
     assert start_value == start
     assert end_value is None
 

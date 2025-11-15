@@ -13,7 +13,7 @@ easier to review when I can make time.
 
 - Python 3.10 – 3.13
 - Pip + virtualenv (recommended)
-- System packages required by PyQt6 (on Ubuntu: `sudo apt-get install libxcb-xinerama0`)
+- System packages required by PySide6 / Qt (on Ubuntu: `sudo apt-get install libxcb-xinerama0`)
 
 ## Environment Setup
 
@@ -45,7 +45,7 @@ pytest --maxfail=1 --disable-warnings \
 mkdocs build --strict
 ```
 
-CI mirrors these steps across Python 3.10–3.13 and PyQt6 6.5–6.7, so matching
+CI mirrors these steps across Python 3.10–3.13 and PySide6 6.5–6.7, so matching
 the commands locally prevents surprises.
 
 ## Coding Standards

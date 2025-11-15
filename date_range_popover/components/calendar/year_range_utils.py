@@ -9,7 +9,7 @@ surfaces if needed.
 
 from __future__ import annotations
 
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 
 def compute_year_range_start(year: int, range_size: int, *, max_year: int) -> int:

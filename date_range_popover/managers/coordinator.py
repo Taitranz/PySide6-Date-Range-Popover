@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import QDate, QObject
+from PySide6.QtCore import QDate, QObject
 
 from ..components.buttons.button_strip import ButtonStrip
 from ..components.calendar.calendar_widget import CalendarWidget

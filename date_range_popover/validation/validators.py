@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 from ..exceptions import InvalidConfigurationError, InvalidDateError, ValidationError
 

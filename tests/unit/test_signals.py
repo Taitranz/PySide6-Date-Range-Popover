@@ -8,7 +8,7 @@ from date_range_popover.utils.signals import connect_if_present, connect_signal
 
 
 class DummySignal:
-    """Minimal stand-in that mimics the PyQt connect API."""
+    """Minimal stand-in that mimics the PySide connect API."""
 
     def __init__(self) -> None:
         self._slots: list[Callable[[], None]] = []

@@ -1,5 +1,5 @@
 """
-Minimal PyQt application that embeds :class:`DateRangePopover`.
+Minimal PySide application that embeds :class:`DateRangePopover`.
 
 The demo intentionally mirrors the snippets in ``README.md`` so developer
 tooling and tests always execute the same setup path. It also showcases basic
@@ -13,8 +13,8 @@ import sys
 from collections.abc import Callable
 from typing import Protocol, cast
 
-from PyQt6.QtCore import QDate, Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
+from PySide6.QtCore import QDate, Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 
 from date_range_popover import DatePickerConfig, DateRange, DateRangePopover, PickerMode
 

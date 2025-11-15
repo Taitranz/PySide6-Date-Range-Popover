@@ -1,4 +1,4 @@
-"""Utilities for connecting PyQt signals while preserving type information."""
+"""Utilities for connecting PySide signals while preserving type information."""
 
 from __future__ import annotations
 

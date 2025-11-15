@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QResizeEvent
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QResizeEvent
+from PySide6.QtWidgets import (
     QHBoxLayout,
     QSizePolicy,
     QVBoxLayout,
@@ -111,8 +111,8 @@ class SlidingTrackIndicator(QWidget):
         self._indicator.setFixedWidth(self._current_width)
         self._update_layout()
 
-    def resizeEvent(self, a0: QResizeEvent | None) -> None:  # noqa: N802
-        super().resizeEvent(a0)
+    def resizeEvent(self, event: QResizeEvent) -> None:  # noqa: N802
+        super().resizeEvent(event)
         self._update_layout()
 
     def _update_layout(self) -> None:

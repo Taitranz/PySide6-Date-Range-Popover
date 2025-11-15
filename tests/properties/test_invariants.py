@@ -14,7 +14,7 @@ from date_range_popover.utils import first_of_month
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.strategies import DrawFn
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 pytestmark = pytest.mark.usefixtures("qapp")
 

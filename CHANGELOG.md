@@ -12,18 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional picker mode regression tests covering multi-hop transitions.
 - Expanded invalid configuration tests for dimensions, theme payloads, and time steps.
 
+### Changed
+- Migrated the entire widget stack from PyQt6 to PySide6, updating imports, signals,
+  examples, and documentation to the new binding.
+
 ### Fixed
 - Tightened theme validation to ensure invalid mapping payloads bubble up with clear errors.
-- Pinned the runtime dependency to `PyQt6<6.8` (still blocking 6.8+ until tested) while
-  allowing 6.7.1+, whose refreshed Qt bundles resolve the `_ZN5QFont11tagToStringEj`
-  crash seen with 6.7.0 on Linux runners.
+- Pinned the runtime dependency to `PySide6>=6.5,<6.8` until newer wheels are vetted
+  across platforms.
 
 ### Tests
 - Broadened property/edge-case coverage for `DatePickerConfig`, `Theme`, and core validators.
-- CI matrix now targets PyQt 6.5.x and 6.6.x while 6.7.x wheels remain unstable on linux.
-- Removed the `PyQt6-Qt6-OpenGL` reinstall step in CI because no wheels exist for the pinned PyQt6 versions.
-- Regression tests skip the popover `show()` cycle when ``QT_QPA_PLATFORM=offscreen`` to avoid PyQt headless crashes while still exercising the behavior locally.
-- Re-enabled PyQt 6.7.x coverage (using 6.7.1+) now that the upstream Qt symbol issue is fixed.
+- CI matrix now targets PySide6 6.5.x through 6.7.x.
+- Removed the `PyQt6-Qt6-OpenGL` reinstall step in CI; PySide6 wheels already package the needed bits.
+- Regression tests skip the popover `show()` cycle when ``QT_QPA_PLATFORM=offscreen`` to avoid headless crashes while still exercising the behavior locally.
+- Re-enabled the latest PySide6 wheels (6.7.1+) now that the upstream Qt symbol issue is fixed.
 - Added unit tests for date utilities, logging helpers, signal adapters, styles, and picker config/state code to push the tracked package coverage to 100%.
 
 ## [0.1.0] - 2024-06-01

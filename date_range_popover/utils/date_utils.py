@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 from ..exceptions import InvalidDateError
 

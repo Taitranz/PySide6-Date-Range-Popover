@@ -4,8 +4,10 @@ Helpers for constructing and managing the time entry completer popups.
 
 from __future__ import annotations
 
-from PyQt6.QtCore import QStringListModel, Qt
-from PyQt6.QtWidgets import QCompleter, QLineEdit, QWidget
+from typing import cast
+
+from PySide6.QtCore import QStringListModel, Qt
+from PySide6.QtWidgets import QAbstractItemView, QCompleter, QLineEdit, QWidget
 
 from ...styles.style_templates import TimePopupStyle, time_popup_qss
 from ...styles.theme import ColorPalette
@@ -36,7 +38,7 @@ def create_time_completer(
     completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
     completer.setMaxVisibleItems(_MAX_VISIBLE_ITEMS)
 
-    popup = completer.popup()
+    popup = cast(QAbstractItemView | None, completer.popup())
     if popup is not None:
         popup.setStyleSheet(
             time_popup_qss(
@@ -62,14 +64,14 @@ def show_time_popup(line_edit: QLineEdit) -> None:
     current value.
     """
 
-    completer = line_edit.completer()
+    completer = cast(QCompleter | None, line_edit.completer())
     if completer is None:
         return
-    popup = completer.popup()
+    popup = cast(QAbstractItemView | None, completer.popup())
     completer.setCompletionPrefix("")
     text = line_edit.text()
     if text and popup is not None:
-        model = completer.model()
+        model = cast(QStringListModel | None, completer.model())
         if model is not None:
             match_indexes = model.match(
                 model.index(0, 0),
@@ -88,10 +90,10 @@ def show_time_popup(line_edit: QLineEdit) -> None:
 def dismiss_time_popup(line_edit: QLineEdit) -> None:
     """Hide the popup associated with ``line_edit`` if it is currently visible."""
 
-    completer = line_edit.completer()
+    completer = cast(QCompleter | None, line_edit.completer())
     if completer is None:
         return
-    popup = completer.popup()
+    popup = cast(QAbstractItemView | None, completer.popup())
     if popup is not None and popup.isVisible():
         popup.hide()
 

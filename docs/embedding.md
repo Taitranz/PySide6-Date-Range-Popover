@@ -13,7 +13,7 @@ Always convert raw inputs into concrete Python types before building a
 objects and clamp integers to sensible ranges.
 
 ```python
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 def parse_iso_date(value: str | None) -> QDate | None:
     if not value:

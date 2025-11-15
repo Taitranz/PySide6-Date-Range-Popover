@@ -4,8 +4,8 @@ import calendar
 from enum import Enum, auto
 from typing import cast
 
-from PyQt6.QtCore import QDate, Qt, pyqtSignal
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QStackedWidget, QVBoxLayout, QWidget
+from PySide6.QtCore import QDate, Qt, Signal
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QStackedWidget, QVBoxLayout, QWidget
 
 from ...exceptions import InvalidDateError
 from ...styles.style_templates import (
@@ -36,7 +36,7 @@ class CalendarViewMode(Enum):
 class CalendarWidget(QWidget):
     """Coordinator widget that wraps day/month/year views."""
 
-    date_selected = pyqtSignal(QDate)
+    date_selected = Signal(QDate)
 
     _YEAR_RANGE_SIZE = 20
     _YEAR_GRID_COLUMNS = 4

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
-from PyQt6.QtCore import QDate
+from PySide6.QtCore import QDate
 
 from ..api.config import DateRange
 from ..managers.state_manager import PickerMode
