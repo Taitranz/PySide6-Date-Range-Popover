@@ -98,6 +98,7 @@ class DateTimeSelector(QWidget):
         if app is not None:
             app.installEventFilter(self)
             self._installed_app = app
+            connect_signal(self.destroyed, self._handle_destroyed)
         self._build_ui()
 
     def apply_palette(self, palette: ColorPalette) -> None:
@@ -398,8 +399,19 @@ class DateTimeSelector(QWidget):
             self.setFocus(Qt.FocusReason.OtherFocusReason)
 
     def cleanup(self) -> None:
-        if self._installed_app is not None:
+        self._uninstall_event_filter()
+
+    def _handle_destroyed(self, _obj: QObject | None = None) -> None:
+        self._uninstall_event_filter()
+
+    def _uninstall_event_filter(self) -> None:
+        if self._installed_app is None:
+            return
+        try:
             self._installed_app.removeEventFilter(self)
+        except RuntimeError:
+            pass
+        finally:
             self._installed_app = None
 
     def _format_date_text(self, date: QDate | None) -> str:
