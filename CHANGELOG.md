@@ -18,15 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Tightened theme validation to ensure invalid mapping payloads bubble up with clear errors.
-- Pinned the runtime dependency to `PySide6>=6.5,<6.8` until newer wheels are vetted
-  across platforms.
+- Relaxed the runtime dependency to `PySide6>=6.5,<6.11` so CPython 3.13 installs
+  can resolve the newer wheels while we continue vetting Qt 6.8+ across platforms.
 
 ### Tests
 - Broadened property/edge-case coverage for `DatePickerConfig`, `Theme`, and core validators.
-- CI matrix now targets PySide6 6.5.x through 6.7.x.
+- CI matrix now targets PySide6 6.5.x through 6.10.x.
 - Removed the `PyQt6-Qt6-OpenGL` reinstall step in CI; PySide6 wheels already package the needed bits.
 - Regression tests skip the popover `show()` cycle when ``QT_QPA_PLATFORM=offscreen`` to avoid headless crashes while still exercising the behavior locally.
-- Re-enabled the latest PySide6 wheels (6.7.1+) now that the upstream Qt symbol issue is fixed.
+- Re-enabled the latest PySide6 wheels (6.8.0.2+) now that the upstream Qt symbol issue is fixed.
 - Added unit tests for date utilities, logging helpers, signal adapters, styles, and picker config/state code to push the tracked package coverage to 100%.
 
 ## [0.1.0] - 2024-06-01

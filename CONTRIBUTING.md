@@ -45,7 +45,7 @@ pytest --maxfail=1 --disable-warnings \
 mkdocs build --strict
 ```
 
-CI mirrors these steps across Python 3.10–3.13 and PySide6 6.5–6.7, so matching
+CI mirrors these steps across Python 3.10–3.13 and PySide6 6.5–6.10, so matching
 the commands locally prevents surprises.
 
 ## Coding Standards

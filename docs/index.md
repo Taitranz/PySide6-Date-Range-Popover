@@ -36,7 +36,7 @@ app.exec()
 ## Support Matrix
 
 - Python 3.10 – 3.13
-- PySide6 6.5 – 6.7
+- PySide6 6.5 – 6.10
 - Linux, macOS, and Windows targets (Qt handles windowing differences).
 
 Report issues or start discussions on

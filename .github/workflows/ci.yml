@@ -8,15 +8,24 @@ on:
 
 jobs:
   test:
-    name: Python ${{ matrix.python-version }} | PyQt6 ${{ matrix.pyqt-version }}
+    name: Python ${{ matrix.python-version }} | PySide6 ${{ matrix.pyside-version }}
     runs-on: ubuntu-latest
     env:
       QT_QPA_PLATFORM: offscreen
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-        pyqt-version: ["6.5.3", "6.6.1", "6.7.1"]
+        include:
+          - python-version: "3.10"
+            pyside-version: "6.5.3"
+          - python-version: "3.11"
+            pyside-version: "6.6.3"
+          - python-version: "3.12"
+            pyside-version: "6.7.3"
+          - python-version: "3.12"
+            pyside-version: "6.8.0.2"
+          - python-version: "3.13"
+            pyside-version: "6.10.0"
 
     steps:
       - name: Checkout
@@ -37,11 +46,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[test,dev]"
 
-      - name: Pin PyQt6 ${{ matrix.pyqt-version }}
+      - name: Pin PySide6 ${{ matrix.pyside-version }}
         run: |
-          pip install --force-reinstall \
-            "PyQt6==${{ matrix.pyqt-version }}" \
-            "PyQt6-Qt6==${{ matrix.pyqt-version }}"
+          pip install --upgrade --force-reinstall \
+            "PySide6==${{ matrix.pyside-version }}"
 
       - name: Ruff lint
         run: ruff check .
@@ -62,13 +70,13 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           files: coverage.xml
-          flags: py${{ matrix.python-version }}-qt${{ matrix.pyqt-version }}
-          name: coverage-${{ matrix.python-version }}-${{ matrix.pyqt-version }}
+          flags: py${{ matrix.python-version }}-pyside${{ matrix.pyside-version }}
+          name: coverage-${{ matrix.python-version }}-${{ matrix.pyside-version }}
           fail_ci_if_error: true
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.python-version }}-${{ matrix.pyqt-version }}
+          name: coverage-${{ matrix.python-version }}-${{ matrix.pyside-version }}
           path: coverage.xml
 

@@ -26,9 +26,9 @@ classifiers = [
     "Topic :: Software Development :: User Interfaces",
 ]
 dependencies = [
-    # PySide6 6.7.1+ refreshes the bundled Qt libraries with the latest Qt bugfixes.
-    # Keep the cap below 6.8 until we can validate newer wheels across platforms.
-    "PySide6>=6.5,<6.8",
+    # PySide6 6.8.0.2+ ships the first CPython 3.13-compatible wheels.
+    # Keep the cap below 6.11 until we validate the Qt 6.8+ stack across platforms.
+    "PySide6>=6.5,<6.11",
 ]
 
 [project.optional-dependencies]
