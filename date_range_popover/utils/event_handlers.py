@@ -21,14 +21,14 @@ class HoverEventFilter(QObject):
         self._on_enter = on_enter
         self._on_leave = on_leave
 
-    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:  # noqa: D401
-        if a1.type() is QEvent.Type.Enter:
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: D401
+        if event.type() is QEvent.Type.Enter:
             if self._on_enter is not None:
                 self._on_enter()
-        elif a1.type() is QEvent.Type.Leave:
+        elif event.type() is QEvent.Type.Leave:
             if self._on_leave is not None:
                 self._on_leave()
-        return super().eventFilter(a0, a1)
+        return super().eventFilter(watched, event)
 
 
 class FocusForwardingFilter(QObject):
@@ -39,11 +39,11 @@ class FocusForwardingFilter(QObject):
         self._target = target
         self._focus_reason = focus_reason or Qt.FocusReason.MouseFocusReason
 
-    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:  # noqa: D401
-        if a1.type() is QEvent.Type.MouseButtonPress:
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: D401
+        if event.type() is QEvent.Type.MouseButtonPress:
             self._target.setFocus(self._focus_reason)
             return True
-        return super().eventFilter(a0, a1)
+        return super().eventFilter(watched, event)
 
 
 class MouseFocusFilter(QObject):
@@ -53,10 +53,10 @@ class MouseFocusFilter(QObject):
         super().__init__()
         self._focus_reason = focus_reason or Qt.FocusReason.MouseFocusReason
 
-    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:  # noqa: D401
-        if a1.type() is QEvent.Type.MouseButtonPress and isinstance(a0, QWidget):
-            a0.setFocus(self._focus_reason)
-        return super().eventFilter(a0, a1)
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: D401
+        if event.type() is QEvent.Type.MouseButtonPress and isinstance(watched, QWidget):
+            watched.setFocus(self._focus_reason)
+        return super().eventFilter(watched, event)
 
 
 __all__ = ["HoverEventFilter", "FocusForwardingFilter", "MouseFocusFilter"]

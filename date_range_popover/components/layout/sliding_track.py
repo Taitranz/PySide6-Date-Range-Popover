@@ -15,6 +15,23 @@ from ...styles.theme import ColorPalette, LayoutConfig
 class SlidingTrackIndicator(QWidget):
     """Handles layout of the sliding indicator within its track."""
 
+    @staticmethod
+    def _create_child_widget(parent: QWidget | None) -> QWidget:
+        """
+        Create a QWidget child, tolerating PySide sporadic parenting failures.
+
+        PySide occasionally returns ``NULL`` when constructing widgets during tight
+        layout churn (observed under pytest-qt). Retrying without the parent and then
+        adopting the desired owner maintains the intended hierarchy.
+        """
+        try:
+            return QWidget(parent)
+        except SystemError:
+            widget = QWidget()
+            if parent is not None:
+                widget.setParent(parent)
+            return widget
+
     def __init__(
         self,
         parent: QWidget | None = None,
@@ -33,7 +50,7 @@ class SlidingTrackIndicator(QWidget):
         wrapper_layout.setContentsMargins(0, 0, 0, 0)
         wrapper_layout.setSpacing(0)
 
-        self._track_container = QWidget(self)
+        self._track_container = self._create_child_widget(self)
         self._track_container.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._track_container.setSizePolicy(
             QSizePolicy.Policy.Expanding,
@@ -45,15 +62,15 @@ class SlidingTrackIndicator(QWidget):
         track_layout.setContentsMargins(0, 0, 0, 0)
         track_layout.setSpacing(0)
 
-        self._left_spacer = QWidget(self._track_container)
+        self._left_spacer = self._create_child_widget(self._track_container)
         self._left_spacer.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self._left_spacer.setFixedWidth(0)
 
-        self._indicator = QWidget(self._track_container)
+        self._indicator = self._create_child_widget(self._track_container)
         self._indicator.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._indicator.setFixedHeight(self._layout.sliding_indicator_height)
 
-        self._right_spacer = QWidget(self._track_container)
+        self._right_spacer = self._create_child_widget(self._track_container)
         self._right_spacer.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self._right_spacer.setFixedWidth(0)
 

@@ -114,20 +114,20 @@ class DateTimeSelector(QWidget):
             self.setFocus(Qt.FocusReason.MouseFocusReason)
         super().mousePressEvent(event)
 
-    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         target: InputWithIcon | None = None
-        if isinstance(a0, InputWithIcon):
-            target = a0
-        elif isinstance(a0, QLineEdit):
-            parent = a0.parentWidget()
+        if isinstance(watched, InputWithIcon):
+            target = watched
+        elif isinstance(watched, QLineEdit):
+            parent = watched.parentWidget()
             if isinstance(parent, InputWithIcon):
                 target = parent
-        if a1.type() is QEvent.Type.MouseButtonPress:
-            if not self._object_is_within_self(a0) and self._focus_within_self():
-                next_focus_candidate = a0 if isinstance(a0, QWidget) else None
+        if event.type() is QEvent.Type.MouseButtonPress:
+            if not self._object_is_within_self(watched) and self._focus_within_self():
+                next_focus_candidate = watched if isinstance(watched, QWidget) else None
                 self._clear_focus_from_inputs(next_focus_candidate=next_focus_candidate)
-        if target is not None and a1.type() in {QEvent.Type.FocusIn, QEvent.Type.FocusOut}:
-            if a1.type() is QEvent.Type.FocusIn:
+        if target is not None and event.type() in {QEvent.Type.FocusIn, QEvent.Type.FocusOut}:
+            if event.type() is QEvent.Type.FocusIn:
                 if (
                     self._previously_focused_input is not None
                     and self._previously_focused_input is not target
@@ -138,7 +138,7 @@ class DateTimeSelector(QWidget):
                     self._last_focused_date_input = target
                 elif target in self._time_inputs:
                     show_time_popup(target.input)
-        return super().eventFilter(a0, a1)
+        return super().eventFilter(watched, event)
 
     def set_mode(self, mode: ModeLiteral) -> None:
         if mode == self._mode:
@@ -319,8 +319,8 @@ class DateTimeSelector(QWidget):
         return False
 
     def _focus_within_self(self) -> bool:
-        focus_widget = QApplication.focusWidget()
-        if not isinstance(focus_widget, QWidget):
+        focus_widget = cast(QWidget | None, QApplication.focusWidget())
+        if focus_widget is None:
             return False
         return self._object_is_within_self(focus_widget)
 
@@ -331,8 +331,8 @@ class DateTimeSelector(QWidget):
         preferred_focus_reason: Qt.FocusReason = Qt.FocusReason.OtherFocusReason,
         next_focus_candidate: QWidget | None = None,
     ) -> bool:
-        focus_widget = QApplication.focusWidget()
-        if not isinstance(focus_widget, QWidget):
+        focus_widget = cast(QWidget | None, QApplication.focusWidget())
+        if focus_widget is None:
             return False
         if not self._object_is_within_self(focus_widget):
             return False

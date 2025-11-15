@@ -73,18 +73,18 @@ class ButtonStrip(QWidget):
 
         self.apply_palette(ColorPalette())
 
-    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
-        if a0 in {self.date_button, self.custom_range_button}:
-            target_name = "date" if a0 is self.date_button else "custom_range"
-            if a1.type() == QEvent.Type.Enter:
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if watched in {self.date_button, self.custom_range_button}:
+            target_name = "date" if watched is self.date_button else "custom_range"
+            if event.type() == QEvent.Type.Enter:
                 if self._hovered_button != target_name:
                     self._hovered_button = target_name
                     self._update_button_styles()
-            elif a1.type() == QEvent.Type.Leave:
+            elif event.type() == QEvent.Type.Leave:
                 if self._hovered_button == target_name:
                     self._hovered_button = None
                     self._update_button_styles()
-        return super().eventFilter(a0, a1)
+        return super().eventFilter(watched, event)
 
     def set_selected_button(self, button_name: str) -> None:
         """Visually highlight the requested button."""

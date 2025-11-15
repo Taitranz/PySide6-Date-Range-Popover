@@ -9,6 +9,7 @@ from date_range_popover.utils.date_utils import (
     first_of_month,
     iter_month_days,
     normalize_range,
+    qdate_to_ordinal,
 )
 from PySide6.QtCore import QDate
 
@@ -48,6 +49,21 @@ def test_normalize_range_rejects_invalid_dates() -> None:
     """Invalid endpoints should raise InvalidDateError."""
     with pytest.raises(InvalidDateError):
         normalize_range(QDate(), QDate(2024, 8, 1))
+
+
+def test_normalize_range_preserves_sorted_inputs() -> None:
+    """Inputs already in ascending order should pass through untouched."""
+    start = QDate(2024, 9, 5)
+    end = QDate(2024, 9, 25)
+    normalized_start, normalized_end = normalize_range(start, end)
+    assert normalized_start == start
+    assert normalized_end == end
+
+
+def test_qdate_to_ordinal_rejects_invalid_input() -> None:
+    """qdate_to_ordinal should guard against invalid QDate instances."""
+    with pytest.raises(InvalidDateError):
+        qdate_to_ordinal(QDate())
 
 
 def test_iter_month_days_emits_full_grid() -> None:

@@ -207,15 +207,15 @@ class CalendarDayCell(QWidget):
             "}"
         )
 
-    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
-        if a0 is self._button:
-            if a1.type() == QEvent.Type.Enter:
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if watched is self._button:
+            if event.type() == QEvent.Type.Enter:
                 self._is_hovered = True
                 self._update_underline()
-            elif a1.type() == QEvent.Type.Leave:
+            elif event.type() == QEvent.Type.Leave:
                 self._is_hovered = False
                 self._update_underline()
-        return super().eventFilter(a0, a1)
+        return super().eventFilter(watched, event)
 
     def _update_underline(self) -> None:
         if not self._is_today:

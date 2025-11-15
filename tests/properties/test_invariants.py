@@ -10,7 +10,7 @@ from typing import Final
 import pytest
 from date_range_popover.api.config import DateRange
 from date_range_popover.managers.state_manager import DatePickerStateManager
-from date_range_popover.utils import first_of_month
+from date_range_popover.utils import first_of_month, qdate_is_after, qdate_is_before
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.strategies import DrawFn
@@ -33,7 +33,7 @@ def test_date_range_normalizes_start_and_end(start: date, end: date) -> None:
     candidate = DateRange(start_date=_to_qdate(start), end_date=_to_qdate(end))
     assert candidate.start_date is not None
     assert candidate.end_date is not None
-    assert candidate.start_date <= candidate.end_date
+    assert not qdate_is_after(candidate.start_date, candidate.end_date)
 
 
 @dataclass(frozen=True)
@@ -109,8 +109,13 @@ def test_state_manager_actions_preserve_bounds(
 
         start, end = manager.state.selected_dates
         if start is not None:
-            assert min_date <= start <= max_date
+            _assert_within_bounds(start, min_date, max_date)
         if end is not None:
-            assert min_date <= end <= max_date
+            _assert_within_bounds(end, min_date, max_date)
         visible_month = manager.state.visible_month
-        assert min_month <= visible_month <= max_month
+        _assert_within_bounds(visible_month, min_month, max_month)
+
+
+def _assert_within_bounds(candidate: QDate, lower: QDate, upper: QDate) -> None:
+    assert not qdate_is_before(candidate, lower)
+    assert not qdate_is_after(candidate, upper)

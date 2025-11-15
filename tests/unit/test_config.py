@@ -88,6 +88,54 @@ def test_config_validates_initial_selection_against_bounds() -> None:
         DatePickerConfig(min_date=min_date, max_date=max_date, initial_range=bad_range)
 
 
+def test_config_accepts_initial_range_within_bounds() -> None:
+    """A valid initial_range should pass through and remain unchanged."""
+    min_date = QDate(2024, 1, 1)
+    max_date = QDate(2024, 1, 31)
+    initial_range = DateRange(
+        start_date=min_date.addDays(2),
+        end_date=max_date.addDays(-2),
+    )
+
+    config = DatePickerConfig(min_date=min_date, max_date=max_date, initial_range=initial_range)
+    value = config.initial_range
+
+    assert value is not None
+    assert value is initial_range
+    assert config.min_date == min_date
+    assert config.max_date == max_date
+
+
+def test_config_accepts_initial_range_without_start_date() -> None:
+    """Open-start ranges should still be validated against the end bound."""
+    min_date = QDate(2024, 5, 1)
+    max_date = QDate(2024, 5, 20)
+    initial_range = DateRange(start_date=None, end_date=max_date.addDays(-2))
+
+    config = DatePickerConfig(min_date=min_date, max_date=max_date, initial_range=initial_range)
+    value = config.initial_range
+
+    assert value is not None
+    assert value is initial_range
+    assert value.start_date is None
+    assert value.end_date == max_date.addDays(-2)
+
+
+def test_config_accepts_initial_range_without_end_date() -> None:
+    """Open-end ranges should continue to be validated against the start bound."""
+    min_date = QDate(2024, 6, 1)
+    max_date = QDate(2024, 6, 30)
+    initial_range = DateRange(start_date=min_date.addDays(1), end_date=None)
+
+    config = DatePickerConfig(min_date=min_date, max_date=max_date, initial_range=initial_range)
+    value = config.initial_range
+
+    assert value is not None
+    assert value is initial_range
+    assert value.start_date == min_date.addDays(1)
+    assert value.end_date is None
+
+
 def test_config_rejects_min_date_after_max_date() -> None:
     """min_date must always be on or before max_date."""
     min_date = QDate(2024, 2, 10)

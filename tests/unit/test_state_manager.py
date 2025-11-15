@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import pytest
+import date_range_popover.managers.state_manager as state_manager_module
+from date_range_popover.core.state_logic import DatePickerState
 from date_range_popover.managers.state_manager import DatePickerStateManager, PickerMode
 from date_range_popover.utils import first_of_month
 from PySide6.QtCore import QDate
@@ -123,3 +125,25 @@ def test_reset_emits_mode_changed_when_mode_differs() -> None:
     assert spy.count() > 0
     assert _spy_payloads(spy)[-1][0] is PickerMode.DATE
     assert manager.state.mode is PickerMode.DATE
+
+
+def test_reset_skips_selected_date_signal_when_start_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+    """reset should avoid emitting selected_date_changed when no start date exists."""
+    manager = DatePickerStateManager()
+    spy = QSignalSpy(manager.selected_date_changed)
+    sentinel_month = QDate(2024, 7, 1)
+
+    def _fake_build_initial_state(min_date: QDate | None, max_date: QDate | None) -> DatePickerState:
+        return DatePickerState(
+            mode=PickerMode.DATE,
+            selected_dates=(None, None),
+            visible_month=sentinel_month,
+        )
+
+    monkeypatch.setattr(state_manager_module, "build_initial_state", _fake_build_initial_state)
+
+    manager.reset()
+
+    assert spy.count() == 0
+    assert manager.state.selected_dates == (None, None)
+    assert manager.state.visible_month == sentinel_month

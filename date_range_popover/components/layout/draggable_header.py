@@ -28,13 +28,13 @@ class DraggableHeaderStrip(QWidget):
         self._palette = palette
         self.setStyleSheet(f"background-color: {palette.header_background}; border-radius: 0px;")
 
-    def mousePressEvent(self, a0: QMouseEvent | None) -> None:  # noqa: N802
-        if a0 and a0.button() == Qt.MouseButton.LeftButton:
-            self._drag_position = a0.globalPosition().toPoint() - self._parent_widget.pos()
+    def mousePressEvent(self, event: QMouseEvent | None) -> None:  # noqa: N802
+        if event and event.button() == Qt.MouseButton.LeftButton:
+            self._drag_position = event.globalPosition().toPoint() - self._parent_widget.pos()
 
-    def mouseMoveEvent(self, a0: QMouseEvent | None) -> None:  # noqa: N802
-        if a0 and a0.buttons() == Qt.MouseButton.LeftButton:
-            self._parent_widget.move(a0.globalPosition().toPoint() - self._drag_position)
+    def mouseMoveEvent(self, event: QMouseEvent | None) -> None:  # noqa: N802
+        if event and event.buttons() == Qt.MouseButton.LeftButton:
+            self._parent_widget.move(event.globalPosition().toPoint() - self._drag_position)
 
 
 __all__ = ["DraggableHeaderStrip"]

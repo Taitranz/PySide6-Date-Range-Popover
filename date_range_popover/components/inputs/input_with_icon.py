@@ -115,16 +115,16 @@ class InputWithIcon(QWidget):
         self._update_icon_color()
         super().leaveEvent(event)
 
-    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
-        if a0 in {self.icon_placeholder, self._icon_widget}:
-            if a1.type() is QEvent.Type.MouseButtonPress:
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        if watched in {self.icon_placeholder, self._icon_widget}:
+            if event.type() is QEvent.Type.MouseButtonPress:
                 self.input.setFocus(Qt.FocusReason.MouseFocusReason)
                 return True
-        if a0 in {self, self.input}:
-            if a1.type() is QEvent.Type.FocusIn:
+        if watched in {self, self.input}:
+            if event.type() is QEvent.Type.FocusIn:
                 self._was_previously_focused = False
                 self._update_border_style()
-            elif a1.type() is QEvent.Type.FocusOut:
+            elif event.type() is QEvent.Type.FocusOut:
                 self._was_previously_focused = True
                 if (
                     self._revert_on_focus_out
@@ -133,7 +133,7 @@ class InputWithIcon(QWidget):
                 ):
                     self.set_text(self._last_valid_text)
                 self._update_border_style()
-        return super().eventFilter(a0, a1)
+        return super().eventFilter(watched, event)
 
     def apply_style(self, style: InputStyleConfig) -> None:
         self._style = style
