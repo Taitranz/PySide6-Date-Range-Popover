@@ -11,7 +11,7 @@ from PySide6.QtCore import QDate
 
 
 def test_compute_year_range_start_aligns_to_span() -> None:
-    """The helper should snap arbitrary years to the configured span."""
+    """The helper should snap arbitrary years to the configured span. T"""
 
     assert compute_year_range_start(2024, 20, max_year=9999) == 2021
     assert compute_year_range_start(2001, 20, max_year=9999) == 2001
